@@ -7,8 +7,6 @@ import "contracts/factories/BribeFactory.sol";
 import "contracts/factories/GaugeFactory.sol";
 import "contracts/factories/PairFactory.sol";
 import "contracts/redeem/MerkleClaim.sol";
-import "contracts/redeem/RedemptionReceiver.sol";
-import "contracts/redeem/RedemptionSender.sol";
 import "contracts/InternalBribe.sol";
 import "contracts/ExternalBribe.sol";
 import "contracts/Gauge.sol";
@@ -17,8 +15,9 @@ import "contracts/Pair.sol";
 import "contracts/PairFees.sol";
 import "contracts/RewardsDistributor.sol";
 import "contracts/Router.sol";
-import "contracts/Velo.sol";
-import "contracts/VelodromeLibrary.sol";
+import "contracts/Router2.sol";
+import "contracts/Vara.sol";
+import "contracts/VaraLibrary.sol";
 import "contracts/Voter.sol";
 import "contracts/VeArtProxy.sol";
 import "contracts/VotingEscrow.sol";
@@ -32,6 +31,7 @@ import "utils/TestWETH.sol";
 abstract contract BaseTest is Test, TestOwner {
     uint256 constant USDC_1 = 1e6;
     uint256 constant USDC_100K = 1e11; // 1e5 = 100K tokens with 6 decimals
+    uint256 constant USDC_1M = 1e12;
     uint256 constant TOKEN_1 = 1e18;
     uint256 constant TOKEN_100K = 1e23; // 1e5 = 100K tokens with 18 decimals
     uint256 constant TOKEN_1M = 1e24; // 1e6 = 1M tokens with 18 decimals
@@ -47,13 +47,14 @@ abstract contract BaseTest is Test, TestOwner {
     MockERC20 FRAX;
     MockERC20 DAI;
     TestWETH WETH; // Mock WETH token
-    Velo VELO;
+    Vara VARA;
     MockERC20 WEVE;
     MockERC20 LR; // late reward
     TestToken stake; // MockERC20 with claimFees() function that returns (0,0)
     PairFactory factory;
     Router router;
-    VelodromeLibrary lib;
+    Router2 router2;
+    VaraLibrary lib;
     Pair pair;
     Pair pair2;
     Pair pair3;
@@ -72,7 +73,7 @@ abstract contract BaseTest is Test, TestOwner {
         USDC = new MockERC20("USDC", "USDC", 6);
         FRAX = new MockERC20("FRAX", "FRAX", 18);
         DAI = new MockERC20("DAI", "DAI", 18);
-        VELO = new Velo();
+        VARA = new Vara();
         WEVE = new MockERC20("WEVE", "WEVE", 18);
         LR = new MockERC20("LR", "LR", 18);
         WETH = new TestWETH();
@@ -87,9 +88,9 @@ abstract contract BaseTest is Test, TestOwner {
         }
     }
 
-    function mintVelo(address[] memory _accounts, uint256[] memory _amounts) public {
+    function mintVara(address[] memory _accounts, uint256[] memory _amounts) public {
         for (uint256 i = 0; i < _amounts.length; i++) {
-            VELO.mint(_accounts[i], _amounts[i]);
+            VARA.mint(_accounts[i], _amounts[i]);
         }
     }
 
@@ -123,8 +124,9 @@ abstract contract BaseTest is Test, TestOwner {
         factory.setFee(true, 1); // set fee back to 0.01% for old tests
         factory.setFee(false, 1);
         router = new Router(address(factory), address(WETH));
+        router2 = new Router2(address(factory), address(WETH));
         assertEq(router.factory(), address(factory));
-        lib = new VelodromeLibrary(address(router));
+        lib = new VaraLibrary(address(router));
     }
 
     function deployPairWithOwner(address _owner) public {

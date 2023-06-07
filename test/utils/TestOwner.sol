@@ -1,12 +1,11 @@
 pragma solidity 0.8.13;
 
 import "solmate/test/utils/mocks/MockERC20.sol";
-import "contracts/redeem/RedemptionSender.sol";
 import "contracts/Gauge.sol";
 import "contracts/Minter.sol";
 import "contracts/Pair.sol";
 import "contracts/Router.sol";
-import "contracts/Velo.sol";
+import "contracts/Vara.sol";
 import "contracts/VotingEscrow.sol";
 import "utils/TestStakingRewards.sol";
 import "utils/TestVotingEscrow.sol";
@@ -22,14 +21,6 @@ contract TestOwner {
 
     function transfer(address _token, address _to, uint256 _amount) public {
         MockERC20(_token).transfer(_to, _amount);
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                             RedemptionSender
-    //////////////////////////////////////////////////////////////*/
-
-    function redeemWEVE(address _sender, uint256 _amount) public {
-        RedemptionSender(_sender).redeemWEVE(_amount, address(0), bytes(''));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -112,7 +103,7 @@ contract TestOwner {
         Minter(_minter).acceptTeam();
     }
 
-    function setTeamEmissions(address _minter, uint256 _rate) public {
+    function setTeamEmissions(address _minter, uint256 _rate) external {
         Minter(_minter).setTeamRate(_rate);
     }
 
