@@ -120,7 +120,7 @@ breaking the app.
 The contract responsible for minting epoch Vara tokens to be distributed
 during the epoch.
 
-# VaraGovernor
+# FractalGovernor
 `0xF5D177143C5C4705C59DedeA1B23B9d20488371C`
 
 ---
