@@ -3,17 +3,17 @@ pragma solidity 0.8.13;
 
 /// ============ Imports ============
 
-import {IVara} from "contracts/interfaces/IVara.sol";
+import {IFractal} from "contracts/interfaces/IFractal.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol"; // OZ: MerkleProof
 
 /// @title MerkleClaim
-/// @notice Claims VARA for members of a merkle tree
+/// @notice Claims FRACTAL for members of a merkle tree
 /// @author Modified from Merkle Airdrop Starter (https://github.com/Anish-Agnihotri/merkle-airdrop-starter/blob/master/contracts/src/MerkleClaimERC20.sol)
 contract MerkleClaim {
     /// ============ Immutable storage ============
 
-    /// @notice VARA token to claim
-    IVara public immutable VARA;
+    /// @notice FRACTAL token to claim
+    IFractal public immutable FRACTAL;
     /// @notice ERC20-claimee inclusion root
     bytes32 public immutable merkleRoot;
 
@@ -25,10 +25,10 @@ contract MerkleClaim {
     /// ============ Constructor ============
 
     /// @notice Creates a new MerkleClaim contract
-    /// @param _vara address
+    /// @param _fractal address
     /// @param _merkleRoot of claimees
-    constructor(address _vara, bytes32 _merkleRoot) {
-        VARA = IVara(_vara);
+    constructor(address _fractal, bytes32 _merkleRoot) {
+        FRACTAL = IFractal(_fractal);
         merkleRoot = _merkleRoot;
     }
 
@@ -60,7 +60,7 @@ contract MerkleClaim {
         hasClaimed[msg.sender] = true;
 
         // Claim tokens for address
-        require(VARA.claim(msg.sender, amount), "CLAIM_FAILED");
+        require(FRACTAL.claim(msg.sender, amount), "CLAIM_FAILED");
 
         // Emit claim event
         emit Claim(msg.sender, amount);

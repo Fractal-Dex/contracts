@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "contracts/interfaces/IVara.sol";
+import "contracts/interfaces/IFractal.sol";
 
-contract Vara is IVara {
+contract Fractal is IFractal {
 
-    string public constant name = "Vara";
-    string public constant symbol = "VARA";
+    string public constant name = "Fractal";
+    string public constant symbol = "FRAC";
     uint8 public constant decimals = 18;
     uint public totalSupply = 0;
 

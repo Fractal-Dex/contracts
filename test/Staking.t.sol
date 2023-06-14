@@ -18,31 +18,31 @@ contract StakingTest is BaseTest {
         amounts[0] = 1e27;
         amounts[1] = 1e27;
         amounts[2] = 1e27;
-        mintVara(owners, amounts);
+        mintFractal(owners, amounts);
         mintLR(owners, amounts);
         mintStake(owners, amounts);
-        escrow = new TestVotingEscrow(address(VARA));
+        escrow = new TestVotingEscrow(address(FRACTAL));
         voter = new TestVoter();
     }
 
     function createLock() public {
         deployBaseCoins();
 
-        VARA.approve(address(escrow), TOKEN_1);
+        FRACTAL.approve(address(escrow), TOKEN_1);
         escrow.create_lock(TOKEN_1, 4 * 365 * 86400);
     }
 
     function createLock2() public {
         createLock();
 
-        owner2.approve(address(VARA), address(escrow), TOKEN_1);
+        owner2.approve(address(FRACTAL), address(escrow), TOKEN_1);
         owner2.create_lock(address(escrow), TOKEN_1, 4 * 365 * 86400);
     }
 
     function createLock3() public {
         createLock2();
 
-        owner3.approve(address(VARA), address(escrow), TOKEN_1);
+        owner3.approve(address(FRACTAL), address(escrow), TOKEN_1);
         owner3.create_lock(address(escrow), TOKEN_1, 4 * 365 * 86400);
     }
 
@@ -56,7 +56,7 @@ contract StakingTest is BaseTest {
         address gaugeAddr = gaugeFactory.last_gauge();
         gauge = Gauge(gaugeAddr);
 
-        staking = new TestStakingRewards(address(stake), address(VARA));
+        staking = new TestStakingRewards(address(stake), address(FRACTAL));
     }
 
     function depositEmpty() public {
@@ -67,7 +67,7 @@ contract StakingTest is BaseTest {
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
 
-        assertEq(gauge.earned(address(VARA), address(owner)), staking.earned(address(owner)));
+        assertEq(gauge.earned(address(FRACTAL), address(owner)), staking.earned(address(owner)));
     }
 
     function depositEmpty2() public {
@@ -78,7 +78,7 @@ contract StakingTest is BaseTest {
         owner2.stakeStake(address(staking), 1e21);
         owner2.deposit(address(gauge), 1e21, 2);
 
-        assertEq(gauge.earned(address(VARA), address(owner2)), staking.earned(address(owner2)));
+        assertEq(gauge.earned(address(FRACTAL), address(owner2)), staking.earned(address(owner2)));
     }
 
     function depositEmpty3() public {
@@ -89,27 +89,27 @@ contract StakingTest is BaseTest {
         owner3.stakeStake(address(staking), 1e21);
         owner3.deposit(address(gauge), 1e21, 3);
 
-        assertEq(gauge.earned(address(VARA), address(owner3)), staking.earned(address(owner3)));
+        assertEq(gauge.earned(address(FRACTAL), address(owner3)), staking.earned(address(owner3)));
     }
 
     function notifyRewardsAndCompare() public {
         depositEmpty3();
 
-        VARA.approve(address(staking), TOKEN_1M);
-        VARA.approve(address(gauge), TOKEN_1M);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        FRACTAL.approve(address(staking), TOKEN_1M);
+        FRACTAL.approve(address(gauge), TOKEN_1M);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.notifyRewardAmount(TOKEN_1M);
-        gauge.notifyRewardAmount(address(VARA), TOKEN_1M);
+        gauge.notifyRewardAmount(address(FRACTAL), TOKEN_1M);
         vm.warp(block.timestamp + 1800);
         vm.roll(block.number + 1);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
-        VARA.approve(address(staking), TOKEN_1M);
-        VARA.approve(address(gauge), TOKEN_1M);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
+        FRACTAL.approve(address(staking), TOKEN_1M);
+        FRACTAL.approve(address(gauge), TOKEN_1M);
         staking.notifyRewardAmount(TOKEN_1M);
-        gauge.notifyRewardAmount(address(VARA), TOKEN_1M);
+        gauge.notifyRewardAmount(address(FRACTAL), TOKEN_1M);
         vm.warp(block.timestamp + 1800);
         vm.roll(block.number + 1);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
     }
 
     function notifyReward2AndCompare() public {
@@ -133,38 +133,38 @@ contract StakingTest is BaseTest {
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.withdraw(1e21);
         gauge.withdraw(1e21);
         stake.approve(address(staking), 1e21);
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.withdraw(1e21);
         gauge.withdraw(1e21);
         stake.approve(address(staking), 1e21);
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.withdraw(1e21);
         gauge.withdraw(1e21);
         stake.approve(address(staking), 1e21);
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         vm.warp(block.timestamp + 1800);
         vm.roll(block.number + 1);
         staking.withdraw(1e21);
@@ -173,8 +173,8 @@ contract StakingTest is BaseTest {
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         vm.warp(block.timestamp + 604800);
         vm.roll(block.number + 1);
         staking.withdraw(1e21);
@@ -183,8 +183,8 @@ contract StakingTest is BaseTest {
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
     }
 
     function notifyRewardsAndCompareOwner2() public {
@@ -278,32 +278,32 @@ contract StakingTest is BaseTest {
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.withdraw(1e21);
         gauge.withdraw(1e21);
         stake.approve(address(staking), 1e21);
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.withdraw(1e21);
         gauge.withdraw(1e21);
         stake.approve(address(staking), 1e21);
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.withdraw(1e21);
         gauge.withdraw(1e21);
         stake.approve(address(staking), 1e21);
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         vm.warp(block.timestamp + 1800);
         vm.roll(block.number + 1);
         staking.withdraw(1e21);
@@ -312,8 +312,8 @@ contract StakingTest is BaseTest {
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         vm.warp(block.timestamp + 604800);
         vm.roll(block.number + 1);
         staking.withdraw(1e21);
@@ -322,29 +322,29 @@ contract StakingTest is BaseTest {
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
     }
 
     function notifyRewardsAndCompareSet2() public {
         depositAndWithdrawWithoutRewards();
 
-        VARA.approve(address(staking), TOKEN_1M);
-        VARA.approve(address(gauge), TOKEN_1M);
+        FRACTAL.approve(address(staking), TOKEN_1M);
+        FRACTAL.approve(address(gauge), TOKEN_1M);
         staking.notifyRewardAmount(TOKEN_1M);
-        gauge.notifyRewardAmount(address(VARA), TOKEN_1M);
+        gauge.notifyRewardAmount(address(FRACTAL), TOKEN_1M);
         vm.warp(block.timestamp + 1800);
         vm.roll(block.number + 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
-        VARA.approve(address(staking), TOKEN_1M);
-        VARA.approve(address(gauge), TOKEN_1M);
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
+        FRACTAL.approve(address(staking), TOKEN_1M);
+        FRACTAL.approve(address(gauge), TOKEN_1M);
         staking.notifyRewardAmount(TOKEN_1M);
-        gauge.notifyRewardAmount(address(VARA), TOKEN_1M);
+        gauge.notifyRewardAmount(address(FRACTAL), TOKEN_1M);
         vm.warp(block.timestamp + 1800);
         vm.roll(block.number + 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         assertEq(gauge.derivedSupply(), staking.totalSupply());
     }
 
@@ -370,32 +370,32 @@ contract StakingTest is BaseTest {
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.withdraw(1e21);
         gauge.withdraw(1e21);
         stake.approve(address(staking), 1e21);
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.withdraw(1e21);
         gauge.withdraw(1e21);
         stake.approve(address(staking), 1e21);
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         staking.withdraw(1e21);
         gauge.withdraw(1e21);
         stake.approve(address(staking), 1e21);
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         vm.warp(block.timestamp + 1800);
         vm.roll(block.number + 1);
         staking.withdraw(1e21);
@@ -404,16 +404,16 @@ contract StakingTest is BaseTest {
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
-        // uint256 sb = VARA.balanceOf(address(owner));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
+        // uint256 sb = FRACTAL.balanceOf(address(owner));
         staking.getReward();
-        // uint256 sa = VARA.balanceOf(address(owner));
-        // uint256 gb = VARA.balanceOf(address(owner));
+        // uint256 sa = FRACTAL.balanceOf(address(owner));
+        // uint256 gb = FRACTAL.balanceOf(address(owner));
         address[] memory tokens = new address[](1);
-        tokens[0] = address(VARA);
+        tokens[0] = address(FRACTAL);
         gauge.getReward(address(owner), tokens);
-        // uint256 ga = VARA.balanceOf(address(owner));
+        // uint256 ga = FRACTAL.balanceOf(address(owner));
         vm.warp(block.timestamp + 604800);
         vm.roll(block.number + 1);
         staking.withdraw(1e21);
@@ -422,8 +422,8 @@ contract StakingTest is BaseTest {
         stake.approve(address(gauge), 1e21);
         staking.stake(1e21);
         gauge.deposit(1e21, 1);
-        gauge.batchRewardPerToken(address(VARA), 200);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        gauge.batchRewardPerToken(address(FRACTAL), 200);
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         assertGt(staking.rewardPerTokenStored(), 1330355346300364281191);
     }
 
@@ -464,7 +464,7 @@ contract StakingTest is BaseTest {
         owner2.deposit(address(gauge), 1e21, 2);
         owner2.getStakeReward(address(staking));
         address[] memory tokens = new address[](1);
-        tokens[0] = address(VARA);
+        tokens[0] = address(FRACTAL);
         owner2.getGaugeReward(address(gauge), address(owner2), tokens);
         vm.warp(block.timestamp + 604800);
         vm.roll(block.number + 1);
@@ -474,7 +474,7 @@ contract StakingTest is BaseTest {
         owner2.approve(address(stake), address(gauge), 1e21);
         owner2.stakeStake(address(staking), 1e21);
         owner2.deposit(address(gauge), 1e21, 2);
-        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(VARA)));
+        assertEq(staking.rewardPerTokenStored(), gauge.rewardPerTokenStored(address(FRACTAL)));
         assertGt(staking.rewardPerTokenStored(), 1330355346300364281191);
     }
 

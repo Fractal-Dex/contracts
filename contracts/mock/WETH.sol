@@ -119,11 +119,11 @@ freedoms that you received.  You must make sure that they, too, receive
 or can get the source code.  And you must show them these terms so they
 know their rights.
 
-  Devarapers that use the GNU GPL protect your rights with two steps:
+  Defractalpers that use the GNU GPL protect your rights with two steps:
 (1) assert copyright on the software, and (2) offer you this License
 giving you legal permission to copy, distribute and/or modify it.
 
-  For the devarapers' and authors' protection, the GPL clearly explains
+  For the defractalpers' and authors' protection, the GPL clearly explains
 that there is no warranty for this free software.  For both users' and
 authors' sake, the GPL requires that modified versions be marked as
 changed, so that their problems will not be attributed erroneously to
@@ -141,7 +141,7 @@ stand ready to extend this provision to those domains in future versions
 of the GPL, as needed to protect the freedom of users.
 
   Finally, every program is threatened constantly by software patents.
-States should not allow patents to restrict devarapment and use of
+States should not allow patents to restrict defractalpment and use of
 software on general-purpose computers, but in those that do, we wish to
 avoid the special danger that patents applied to a free program could
 make it effectively proprietary.  To prevent this, the GPL assures that
@@ -200,7 +200,7 @@ form of a work.
   A "Standard Interface" means an interface that either is an official
 standard defined by a recognized standards body, or, in the case of
 interfaces specified for a particular programming language, one that
-is widely used among devarapers working in that language.
+is widely used among defractalpers working in that language.
 
   The "System Libraries" of an executable work include anything, other
 than the work as a whole, that (a) is included in the normal form of
@@ -704,7 +704,7 @@ copy of the Program in return for a fee.
 
             How to Apply These Terms to Your New Programs
 
-  If you devarap a new program, and you want it to be of the greatest
+  If you defractalp a new program, and you want it to be of the greatest
 possible use to the public, the best way to achieve this is to make it
 free software which everyone can redistribute and change under these terms.
 

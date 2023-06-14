@@ -29,7 +29,7 @@ interface LPT
     function transfer(address, uint) external;
 }
 
-contract EquilibreTvlOracle is Ownable
+contract TvlOracle is Ownable
 {
     /*
      -	Personal Functions must begin with an "_".
@@ -192,12 +192,12 @@ contract EquilibreTvlOracle is Ownable
     //Bank
     t_usd[] public _bankOf_t_usd;
     //Edit: Push & Pull
-    function _pushBankOf_t_usd(address asset, address pool, uint8 dec, address u, address lp) public onlyOwner 
+    function _pushBankOf_t_usd(address asset, address pool, uint8 dec, address u, address lp) public onlyOwner
     {
         _bankOf_t_usd.push(t_usd({asset: asset, pool: pool, dec: dec, u: u, lp: lp}));
     }
 
-    function _pullBankOf_t_usd(uint n) public onlyOwner 
+    function _pullBankOf_t_usd(uint n) public onlyOwner
     {
         _bankOf_t_usd[n] = _bankOf_t_usd[_bankOf_t_usd.length - 1];
         _bankOf_t_usd.pop();
@@ -264,7 +264,7 @@ contract EquilibreTvlOracle is Ownable
         _bankOf_t_coin_usd.push(t_coin_usd({asset: asset, pool: pool, dec: dec, lp: lp}));
     }
 
-    function _pullBankOf_t_coin_usd(uint n) public onlyOwner 
+    function _pullBankOf_t_coin_usd(uint n) public onlyOwner
     {
         _bankOf_t_coin_usd[n] = _bankOf_t_coin_usd[_bankOf_t_coin_usd.length - 1];
         _bankOf_t_coin_usd.pop();
@@ -336,12 +336,12 @@ contract EquilibreTvlOracle is Ownable
     //Bank
     t_tt_usd[] public _bankOf_t_tt_usd;
     //Edit: Push & Pull
-    function _pushBankOf_t_tt_usd(address asset, address pool, uint8 dec, address lp_tt, address lp_bt_u, address u) public onlyOwner 
+    function _pushBankOf_t_tt_usd(address asset, address pool, uint8 dec, address lp_tt, address lp_bt_u, address u) public onlyOwner
     {
         _bankOf_t_tt_usd.push(t_tt_usd({asset: asset, pool: pool, dec: dec, lp_tt: lp_tt, lp_bt_u: lp_bt_u, u: u}));
     }
 
-    function _pullBankOf_t_tt_usd(uint n) public onlyOwner 
+    function _pullBankOf_t_tt_usd(uint n) public onlyOwner
     {
         _bankOf_t_tt_usd[n] = _bankOf_t_tt_usd[_bankOf_t_tt_usd.length - 1];
         _bankOf_t_tt_usd.pop();
@@ -404,10 +404,10 @@ contract EquilibreTvlOracle is Ownable
     //Bank
     t_tt_coin_usd[] public _bankOf_t_tt_coin_usd;
     //Edit: Push & Pull
-    function _pushBankOf_t_tt_coin_usd(address asset, address pool, uint8 dec, address lp_tt, address lp_bt_f) public onlyOwner 
+    function _pushBankOf_t_tt_coin_usd(address asset, address pool, uint8 dec, address lp_tt, address lp_bt_f) public onlyOwner
     {_bankOf_t_tt_coin_usd.push(t_tt_coin_usd({asset: asset, pool: pool, dec: dec, lp_tt: lp_tt, lp_bt_f: lp_bt_f}));}
 
-    function _pullBankOf_t_tt_coin_usd(uint n) public onlyOwner 
+    function _pullBankOf_t_tt_coin_usd(uint n) public onlyOwner
     {
         _bankOf_t_tt_coin_usd[n] = _bankOf_t_tt_coin_usd[_bankOf_t_tt_coin_usd.length - 1];
         _bankOf_t_tt_coin_usd.pop();
@@ -457,10 +457,10 @@ contract EquilibreTvlOracle is Ownable
     //Bank
     lpt_usd[] public _bankOf_lpt_usd;
     //Edit: Push & Pull
-    function _pushBankOf_lpt_usd(address asset, address pool, uint8 dec, address u, address lp) public onlyOwner 
+    function _pushBankOf_lpt_usd(address asset, address pool, uint8 dec, address u, address lp) public onlyOwner
     {_bankOf_lpt_usd.push(lpt_usd({asset: asset, pool: pool, dec: dec, u: u, lp: lp}));}
 
-    function _pullBankOf_lpt_usd(uint n) public onlyOwner 
+    function _pullBankOf_lpt_usd(uint n) public onlyOwner
     {
         _bankOf_lpt_usd[n] = _bankOf_lpt_usd[_bankOf_lpt_usd.length - 1];
         _bankOf_lpt_usd.pop();
@@ -515,12 +515,12 @@ contract EquilibreTvlOracle is Ownable
     //Bank
     lpt_coin_usd[] public _bankOf_lpt_coin_usd;
     //Edit: Push & Pull
-    function _pushBankOf_lpt_coin_usd(address asset, address pool, uint8 dec, address lp) public onlyOwner 
+    function _pushBankOf_lpt_coin_usd(address asset, address pool, uint8 dec, address lp) public onlyOwner
     {
         _bankOf_lpt_coin_usd.push(lpt_coin_usd({asset: asset, pool: pool, dec: dec, lp: lp}));
     }
 
-    function _pullBankOf_lpt_coin_usd(uint n) public onlyOwner 
+    function _pullBankOf_lpt_coin_usd(uint n) public onlyOwner
     {
         _bankOf_lpt_coin_usd[n] = _bankOf_lpt_coin_usd[_bankOf_lpt_coin_usd.length - 1];
         _bankOf_lpt_coin_usd.pop();
@@ -574,12 +574,12 @@ contract EquilibreTvlOracle is Ownable
     //Bank
     lpt_tt_usd[] public _bankOf_lpt_tt_usd;
     //Edit: Push & Pull
-    function _pushBankOf_lpt_tt_usd(address asset, address pool, uint8 dec, address lp_tt, address lp_tt_b, address lp_bt_u, address u) public onlyOwner 
+    function _pushBankOf_lpt_tt_usd(address asset, address pool, uint8 dec, address lp_tt, address lp_tt_b, address lp_bt_u, address u) public onlyOwner
     {
         _bankOf_lpt_tt_usd.push(lpt_tt_usd({asset: asset, pool: pool, dec: dec, lp_tt: lp_tt, lp_tt_b: lp_tt_b, lp_bt_u: lp_bt_u, u: u}));
     }
 
-    function _pullBankOf_lpt_tt_usd(uint n) public onlyOwner 
+    function _pullBankOf_lpt_tt_usd(uint n) public onlyOwner
     {
         _bankOf_lpt_tt_usd[n] = _bankOf_lpt_tt_usd[_bankOf_lpt_tt_usd.length - 1];
         _bankOf_lpt_tt_usd.pop();
@@ -632,10 +632,10 @@ contract EquilibreTvlOracle is Ownable
     //Bank
     lpt_tt_coin_usd[] public _bankOf_lpt_tt_coin_usd;
     //Edit: Push & Pull
-    function _pushBankOf_lpt_tt_coin_usd(address asset, address pool, uint8 dec, address lp_tt, address lp_tt_b, address lp_bt_f) public onlyOwner 
+    function _pushBankOf_lpt_tt_coin_usd(address asset, address pool, uint8 dec, address lp_tt, address lp_tt_b, address lp_bt_f) public onlyOwner
     {_bankOf_lpt_tt_coin_usd.push(lpt_tt_coin_usd({asset: asset, pool: pool, dec: dec, lp_tt: lp_tt, lp_tt_b: lp_tt_b, lp_bt_f: lp_bt_f}));}
 
-    function _pullBankOf_lpt_tt_coin_usd(uint n) public onlyOwner 
+    function _pullBankOf_lpt_tt_coin_usd(uint n) public onlyOwner
     {
         _bankOf_lpt_tt_coin_usd[n] = _bankOf_lpt_tt_coin_usd[_bankOf_lpt_tt_coin_usd.length - 1];
         _bankOf_lpt_tt_coin_usd.pop();
@@ -696,7 +696,7 @@ contract EquilibreTvlOracle is Ownable
         uint256[] memory _lpt_coin_usd,
         uint256[] memory _lpt_tt_usd,
         uint256[] memory _lpt_tt_coin_usd
-    ) public onlyOwner 
+    ) public onlyOwner
     {
         _bankOf_pool2_usd_e_usd = _e_usd;
         _bankOf_pool2_usd_coin_usd = _coin_usd;
@@ -784,7 +784,7 @@ contract EquilibreTvlOracle is Ownable
         uint256[] memory _lpt_coin_usd,
         uint256[] memory _lpt_tt_usd,
         uint256[] memory _lpt_tt_coin_usd
-    ) public onlyOwner 
+    ) public onlyOwner
     {
         _bankOf_staking_usd_e_usd = _e_usd;
         _bankOf_staking_usd_coin_usd = _coin_usd;
@@ -891,7 +891,7 @@ contract EquilibreTvlOracle is Ownable
      * Please keep this notice intact if you fork, reuse or derive codes from this contract.
 
      */
-    function rescue(address tokenAddress, uint256 tokens) public onlyOwner 
+    function rescue(address tokenAddress, uint256 tokens) public onlyOwner
     {
         if (tokenAddress == address(0)) {
             owner().call{value: tokens}("");

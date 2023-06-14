@@ -1,15 +1,15 @@
 pragma solidity 0.8.13;
 
 import './BaseTest.sol';
-import "contracts/EquilibreTvlOracle.sol";
-import "contracts/Vara.sol";
+import "contracts/TvlOracle.sol";
+import "contracts/Fractal.sol";
 
-contract EquilibreTvlOracleTest is BaseTest {
+contract TvlOracleTest is BaseTest {
     uint TOKEN_100 = 100 * 1e18;
     uint TOKEN_100e6 = 100 * 1e6;
-    EquilibreTvlOracle oracle;
-    EquilibreTvlOracle oracle_vara;
-    Pair poolVara;
+    TvlOracle oracle;
+    TvlOracle oracle_fractal;
+    Pair poolFractal;
     function setUp() public {
         deployCoins();
         factory = new PairFactory();
@@ -21,19 +21,19 @@ contract EquilibreTvlOracleTest is BaseTest {
         router2.addLiquidityETH{value : TOKEN_100}(address(USDC), false, TOKEN_100e6, 0, 0, address(this), block.timestamp);
         pair = Pair(factory.getPair(address(USDC), address(WETH), false));
 
-        // vara/usdc
+        // fractal/usdc
         USDC.mint(address(this), TOKEN_100e6);
         USDC.approve(address(router2), TOKEN_100e6);
-        VARA.mint(address(this), TOKEN_100);
-        VARA.approve(address(router2), TOKEN_100);
-        router2.addLiquidity(address(VARA), address(USDC), false, TOKEN_100, TOKEN_100e6, 0, 0, address(this), block.timestamp);
-        poolVara = Pair(factory.getPair(address(USDC), address(VARA), false));
+        FRACTAL.mint(address(this), TOKEN_100);
+        FRACTAL.approve(address(router2), TOKEN_100);
+        router2.addLiquidity(address(FRACTAL), address(USDC), false, TOKEN_100, TOKEN_100e6, 0, 0, address(this), block.timestamp);
+        poolFractal = Pair(factory.getPair(address(USDC), address(FRACTAL), false));
 
         address[3] memory uwl = [address(USDC), address(WETH), address(pair)];
-        oracle = new EquilibreTvlOracle(uwl, 6);
+        oracle = new TvlOracle(uwl, 6);
 
-        address[3] memory uwl_vara = [address(USDC), address(VARA), address(poolVara)];
-        oracle_vara = new EquilibreTvlOracle(uwl_vara, 6);
+        address[3] memory uwl_fractal = [address(USDC), address(FRACTAL), address(poolFractal)];
+        oracle_fractal = new TvlOracle(uwl_fractal, 6);
 
     }
 
@@ -45,8 +45,8 @@ contract EquilibreTvlOracleTest is BaseTest {
         uint price_eth = oracle.p_t_coin_usd(address(pair));
         console2.log('eth/usdc price', price_eth);
 
-        uint price_vara = oracle.p_t_coin_usd(address(poolVara));
-        console2.log('vara/usdc price', price_vara);
+        uint price_fractal = oracle.p_t_coin_usd(address(poolFractal));
+        console2.log('fractal/usdc price', price_fractal);
 
     }
 }
