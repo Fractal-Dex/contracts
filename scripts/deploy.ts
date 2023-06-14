@@ -1,9 +1,10 @@
 import getDeploymentConfig from "../deployment-config";
 import fs from "fs";
+import {ethers} from "ethers";
 let chainId: number, mainNet: boolean, testNet: boolean;
 let CONTRACTS: any = {};
 let tx; // running tx variable to wait for execution
-
+let deployer:hre.ethers.Wallet; // signer for tx
 function get(name: string): string {
     if (CONTRACTS[name])
         return CONTRACTS[name];
@@ -34,18 +35,22 @@ function set(name: string, addr: string): string {
 }
 
 async function verify(contract: any, args: any[] = []) {
-    if (! mainNet && ! testNet) return;
+    // dump balance of deployer:
+    const balance = await hre.ethers.provider.getBalance(deployer.address);
+    console.log(` - Balance of deployer: ${ethers.utils.formatEther(balance)}`);
     const addr = contract.address;
     const verifyArgs = {
         address: addr,
         constructorArguments: args,
     };
     try {
-        await contract.deployTransaction.wait(5);
-        hre.run("verify:verify", verifyArgs);
+        if ( mainNet || testNet) {
+            await contract.deployTransaction.wait(5);
+            hre.run("verify:verify", verifyArgs);
+        }
     } catch (e) {
-        console.log(`# Verification failed for ${addr}`);
-        console.log(`# verifyArgs:`, verifyArgs);
+        console.log(` - Verification failed for ${addr}`);
+        console.log(` - verifyArgs:`, verifyArgs);
         console.log(e);
     }
 }
@@ -57,8 +62,8 @@ async function main() {
     testNet = chainId === 97;
     const CONFIG = getDeploymentConfig(mainNet);
     // public key from private key:
-    const signer = new hre.ethers.Wallet(process.env.PRIVATE_KEY);
-    console.log(`#Network: ${chainId}, deployer: ${signer.address}`);
+    deployer = new hre.ethers.Wallet(process.env.PRIVATE_KEY);
+    console.log(`#Network: ${chainId}, deployer: ${deployer.address}`);
 
     // Load
     const [
