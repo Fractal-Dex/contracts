@@ -1,4 +1,4 @@
-# Fractal
+# Token
 `0xE1da44C0dA55B075aE8E2e4b6986AdC76Ac77d73`
 
 ---
@@ -62,7 +62,7 @@ Used to swap tokens from pools.
 
 This version support tokens with fee on transfer, and it is used in the app.
 
-# FractalLibrary
+# TokenLibrary
 `0xFDEd8097db44B6cE7d5a2c9228f2A9f46ad66fb8`
 
 ---
@@ -83,7 +83,7 @@ returned by tokenURI.
 ---
 
 This is the veNFT contract, an ERC721 contract that hold 
-Fractal tokens and provide the NFT with the lock.
+Token tokens and provide the NFT with the lock.
 
 The veNFT info is used in gauges/bribe system to pay user rewards.
 
@@ -93,7 +93,7 @@ The veNFT info is used in gauges/bribe system to pay user rewards.
 ---
 
 This is an internal contract used by `Minter` contract that distribute
-`Fractal` rewards. 
+`Token` rewards. 
 
 # Voter
     `0x4eB2B9768da9Ea26E3aBe605c9040bC12F236a59`
@@ -117,10 +117,10 @@ breaking the app.
 
 ---
 
-The contract responsible for minting epoch Fractal tokens to be distributed
+The contract responsible for minting epoch Token tokens to be distributed
 during the epoch.
 
-# FractalGovernor
+# TokenGovernor
 `0xF5D177143C5C4705C59DedeA1B23B9d20488371C`
 
 ---

@@ -18,13 +18,13 @@ contract MinterTeamEmissions is BaseTest {
         deployOwners();
         deployCoins();
         mintStables();
-        uint256[] memory amountsFractal = new uint256[](2);
-        amountsFractal[0] = 1e25;
-        amountsFractal[1] = 1e25;
-        mintFractal(owners, amountsFractal);
+        uint256[] memory amountsToken = new uint256[](2);
+        amountsToken[0] = 1e25;
+        amountsToken[1] = 1e25;
+        mintToken(owners, amountsToken);
         team = new TestOwner();
         VeArtProxy artProxy = new VeArtProxy();
-        escrow = new VotingEscrow(address(FRACTAL), address(artProxy));
+        escrow = new VotingEscrow(address(Token), address(artProxy));
         factory = new PairFactory();
         router = new Router(address(factory), address(owner));
         gaugeFactory = new GaugeFactory();
@@ -38,9 +38,9 @@ contract MinterTeamEmissions is BaseTest {
 
         address[] memory tokens = new address[](2);
         tokens[0] = address(FRAX);
-        tokens[1] = address(FRACTAL);
+        tokens[1] = address(Token);
         voter.initialize(tokens, address(owner));
-        FRACTAL.approve(address(escrow), TOKEN_1);
+        Token.approve(address(escrow), TOKEN_1);
         escrow.create_lock(TOKEN_1, 4 * 365 * 86400);
         distributor = new RewardsDistributor(address(escrow));
         escrow.setVoter(address(voter));
@@ -51,13 +51,13 @@ contract MinterTeamEmissions is BaseTest {
             address(distributor)
         );
         distributor.setDepositor(address(minter));
-        FRACTAL.setMinter(address(minter));
+        Token.setMinter(address(minter));
 
-        FRACTAL.approve(address(router), TOKEN_1);
+        Token.approve(address(router), TOKEN_1);
         FRAX.approve(address(router), TOKEN_1);
         router.addLiquidity(
             address(FRAX),
-            address(FRACTAL),
+            address(Token),
             false,
             TOKEN_1,
             TOKEN_1,
@@ -67,13 +67,13 @@ contract MinterTeamEmissions is BaseTest {
             block.timestamp
         );
 
-        address pair = router.pairFor(address(FRAX), address(FRACTAL), false);
+        address pair = router.pairFor(address(FRAX), address(Token), false);
 
-        FRACTAL.approve(address(voter), 5 * TOKEN_100K);
+        Token.approve(address(voter), 5 * TOKEN_100K);
         voter.createGauge(pair);
         vm.roll(block.number + 1); // fwd 1 block because escrow.balanceOfNFT() returns 0 in same block
         assertGt(escrow.balanceOfNFT(1), 995063075414519385);
-        assertEq(FRACTAL.balanceOf(address(escrow)), TOKEN_1);
+        assertEq(Token.balanceOf(address(escrow)), TOKEN_1);
 
         address[] memory pools = new address[](1);
         pools[0] = pair;
@@ -89,18 +89,18 @@ contract MinterTeamEmissions is BaseTest {
         assertEq(escrow.ownerOf(2), address(owner));
         assertEq(escrow.ownerOf(3), address(0));
         vm.roll(block.number + 1);
-        assertEq(FRACTAL.balanceOf(address(minter)), 838_000 ether );
+        assertEq(Token.balanceOf(address(minter)), 838_000 ether );
 
-        uint256 before = FRACTAL.balanceOf(address(owner));
+        uint256 before = Token.balanceOf(address(owner));
         minter.update_period(); // initial period week 1
-        uint256 after_ = FRACTAL.balanceOf(address(owner));
+        uint256 after_ = Token.balanceOf(address(owner));
         assertEq(minter.weekly(), 1_838_000 * 1e18);
         assertEq(after_ - before, 0);
         vm.warp(block.timestamp + 86400 * 7);
         vm.roll(block.number + 1);
-        before = FRACTAL.balanceOf(address(owner));
+        before = Token.balanceOf(address(owner));
         minter.update_period(); // initial period week 2
-        after_ = FRACTAL.balanceOf(address(owner));
+        after_ = Token.balanceOf(address(owner));
         assertLt(minter.weekly(), 15 * TOKEN_1M); // <15M for week shift
     }
 
@@ -127,35 +127,35 @@ contract MinterTeamEmissions is BaseTest {
 
         vm.warp(block.timestamp + 86400 * 7);
         vm.roll(block.number + 1);
-        uint256 beforeTeamSupply = FRACTAL.balanceOf(address(team));
+        uint256 beforeTeamSupply = Token.balanceOf(address(team));
         uint256 weekly = minter.weekly_emission();
         uint256 growth = minter.calculate_growth(weekly);
         minter.update_period(); // new period
-        uint256 afterTeamSupply = FRACTAL.balanceOf(address(team));
-        uint256 newTeamFractal = afterTeamSupply - beforeTeamSupply;
-        assertEq(((weekly + growth + newTeamFractal) * 60) / 1000, newTeamFractal); // check 3% of new emissions to team
+        uint256 afterTeamSupply = Token.balanceOf(address(team));
+        uint256 newTeamToken = afterTeamSupply - beforeTeamSupply;
+        assertEq(((weekly + growth + newTeamToken) * 60) / 1000, newTeamToken); // check 3% of new emissions to team
 
         vm.warp(block.timestamp + 86400 * 7);
         vm.roll(block.number + 1);
-        beforeTeamSupply = FRACTAL.balanceOf(address(team));
+        beforeTeamSupply = Token.balanceOf(address(team));
         weekly = minter.weekly_emission();
         growth = minter.calculate_growth(weekly);
         minter.update_period(); // new period
-        afterTeamSupply = FRACTAL.balanceOf(address(team));
-        newTeamFractal = afterTeamSupply - beforeTeamSupply;
-        assertEq(((weekly + growth + newTeamFractal) * 60) / 1000, newTeamFractal); // check 3% of new emissions to team
+        afterTeamSupply = Token.balanceOf(address(team));
+        newTeamToken = afterTeamSupply - beforeTeamSupply;
+        assertEq(((weekly + growth + newTeamToken) * 60) / 1000, newTeamToken); // check 3% of new emissions to team
 
-        // rate is right even when FRACTAL is sent to Minter contract
+        // rate is right even when Token is sent to Minter contract
         vm.warp(block.timestamp + 86400 * 7);
         vm.roll(block.number + 1);
-        owner2.transfer(address(FRACTAL), address(minter), 1e25);
-        beforeTeamSupply = FRACTAL.balanceOf(address(team));
+        owner2.transfer(address(Token), address(minter), 1e25);
+        beforeTeamSupply = Token.balanceOf(address(team));
         weekly = minter.weekly_emission();
         growth = minter.calculate_growth(weekly);
         minter.update_period(); // new period
-        afterTeamSupply = FRACTAL.balanceOf(address(team));
-        newTeamFractal = afterTeamSupply - beforeTeamSupply;
-        assertEq(((weekly + growth + newTeamFractal) * 60) / 1000, newTeamFractal); // check 3% of new emissions to team
+        afterTeamSupply = Token.balanceOf(address(team));
+        newTeamToken = afterTeamSupply - beforeTeamSupply;
+        assertEq(((weekly + growth + newTeamToken) * 60) / 1000, newTeamToken); // check 3% of new emissions to team
     }
 
     function testChangeTeamEmissionsRate() public {
@@ -180,12 +180,12 @@ contract MinterTeamEmissions is BaseTest {
 
         vm.warp(block.timestamp + 86400 * 7);
         vm.roll(block.number + 1);
-        uint256 beforeTeamSupply = FRACTAL.balanceOf(address(team));
+        uint256 beforeTeamSupply = Token.balanceOf(address(team));
         uint256 weekly = minter.weekly_emission();
         uint256 growth = minter.calculate_growth(weekly);
         minter.update_period(); // new period
-        uint256 afterTeamSupply = FRACTAL.balanceOf(address(team));
-        uint256 newTeamFractal = afterTeamSupply - beforeTeamSupply;
-        assertEq(((weekly + growth + newTeamFractal) * 50) / 1000, newTeamFractal); // check 5% of new emissions to team
+        uint256 afterTeamSupply = Token.balanceOf(address(team));
+        uint256 newTeamToken = afterTeamSupply - beforeTeamSupply;
+        assertEq(((weekly + growth + newTeamToken) * 50) / 1000, newTeamToken); // check 5% of new emissions to team
     }
 }

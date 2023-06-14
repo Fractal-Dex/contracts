@@ -27,10 +27,10 @@ contract WrappedExternalBribesTest is BaseTest {
         amounts[0] = 2e25;
         amounts[1] = 1e25;
         amounts[2] = 1e25;
-        mintFractal(owners, amounts);
+        mintToken(owners, amounts);
         mintLR(owners, amounts);
         VeArtProxy artProxy = new VeArtProxy();
-        escrow = new VotingEscrow(address(FRACTAL), address(artProxy));
+        escrow = new VotingEscrow(address(Token), address(artProxy));
         deployPairFactoryAndRouter();
         deployPairWithOwner(address(owner));
 
@@ -46,12 +46,12 @@ contract WrappedExternalBribesTest is BaseTest {
         distributor = new RewardsDistributor(address(escrow));
         minter = new Minter(address(voter), address(escrow), address(distributor));
         distributor.setDepositor(address(minter));
-        FRACTAL.setMinter(address(minter));
+        Token.setMinter(address(minter));
         address[] memory tokens = new address[](5);
         tokens[0] = address(USDC);
         tokens[1] = address(FRAX);
         tokens[2] = address(DAI);
-        tokens[3] = address(FRACTAL);
+        tokens[3] = address(Token);
         tokens[4] = address(LR);
         voter.initialize(tokens, address(minter));
 
@@ -66,10 +66,10 @@ contract WrappedExternalBribesTest is BaseTest {
         wxbribe = WrappedExternalBribe(wxbribeFactory.createBribe(address(xbribe)));
 
         // ve
-        FRACTAL.approve(address(escrow), TOKEN_1);
+        Token.approve(address(escrow), TOKEN_1);
         escrow.create_lock(TOKEN_1, 4 * 365 * 86400);
         vm.startPrank(address(owner2));
-        FRACTAL.approve(address(escrow), TOKEN_1);
+        Token.approve(address(escrow), TOKEN_1);
         escrow.create_lock(TOKEN_1, 4 * 365 * 86400);
         vm.warp(block.timestamp + 1);
         vm.stopPrank();

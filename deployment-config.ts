@@ -26,12 +26,12 @@ const mainnet_config = {
 };
 
 const testnetArgs = {
-    WETH: "0x6C2A54580666D69CF904a82D8180F198C03ece67",
-    USDC: "0x43D8814FdFB9B8854422Df13F1c66e34E4fa91fD",
-    teamEOA: "0x83B35466ff8ec3b714c17697930ec304f7FF0057",
-    teamTreasure: '0x83B35466ff8ec3b714c17697930ec304f7FF0057',
-    teamMultisig: "0x83B35466ff8ec3b714c17697930ec304f7FF0057",
-    emergencyCouncil: "0x83B35466ff8ec3b714c17697930ec304f7FF0057",
+    WETH: "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
+    USDC: "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee",
+    teamEOA: "0xb8e476D9719159CAe682B91354E1ffA8d2F804e3",
+    teamTreasure: '0xb8e476D9719159CAe682B91354E1ffA8d2F804e3',
+    teamMultisig: "0xb8e476D9719159CAe682B91354E1ffA8d2F804e3",
+    emergencyCouncil: "0xb8e476D9719159CAe682B91354E1ffA8d2F804e3",
     merkleRoot: "0x6362f8fcdd558ac55b3570b67fdb1d1673bd01bd53302e42f01377f102ac80a9",
     tokenWhitelist: [],
     partnerAddrs: [

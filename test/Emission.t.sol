@@ -16,12 +16,12 @@ import "contracts/PairFees.sol";
 import "contracts/RewardsDistributor.sol";
 import "contracts/Router.sol";
 import "contracts/Router2.sol";
-import "contracts/Fractal.sol";
-import "contracts/FractalLibrary.sol";
+import "contracts/Token.sol";
+import "contracts/TokenLibrary.sol";
 import "contracts/Voter.sol";
 import "contracts/VeArtProxy.sol";
 import "contracts/VotingEscrow.sol";
-import "contracts/FractalGovernor.sol";
+import "contracts/TokenGovernor.sol";
 import "utils/TestOwner.sol";
 import "utils/TestStakingRewards.sol";
 import "utils/TestToken.sol";
@@ -32,7 +32,7 @@ contract Emission is Test {
     TestWETH WETH;
     MockERC20 DAI;
     uint TOKEN_100 = 100 * 1e18;
-    Fractal fractal;
+    Token token;
     GaugeFactory gaugeFactory;
     BribeFactory bribeFactory;
     PairFactory pairFactory;
@@ -42,13 +42,13 @@ contract Emission is Test {
     RewardsDistributor distributor;
     Voter voter;
     Minter minter;
-    FractalGovernor governor;
+    TokenGovernor governor;
     Pair pool_eth_dai;
-    Pair pool_eth_fractal;
+    Pair pool_eth_token;
     address[] whitelist;
-    Gauge gauge_eth_fractal;
+    Gauge gauge_eth_token;
     function setUp() public {
-        fractal = new Fractal();
+        token = new Token();
         gaugeFactory = new GaugeFactory();
         bribeFactory = new BribeFactory();
         pairFactory = new PairFactory();
@@ -56,14 +56,14 @@ contract Emission is Test {
         DAI = new MockERC20("DAI", "DAI", 18);
         router = new Router2(address(pairFactory), address(WETH));
         artProxy = new VeArtProxy();
-        escrow = new VotingEscrow(address(fractal), address(artProxy));
+        escrow = new VotingEscrow(address(token), address(artProxy));
         distributor = new RewardsDistributor(address(escrow));
         voter = new Voter(address(escrow), address(pairFactory), address(gaugeFactory), address(bribeFactory));
         minter = new Minter(address(voter), address(escrow), address(distributor));
-        governor = new FractalGovernor(escrow);
+        governor = new TokenGovernor(escrow);
         // ---
-        fractal.initialMint(address(this));
-        fractal.setMinter(address(minter));
+        token.initialMint(address(this));
+        token.setMinter(address(minter));
         escrow.setVoter(address(voter));
         escrow.setTeam(address(this));
         voter.setGovernor(address(this));
@@ -72,7 +72,7 @@ contract Emission is Test {
         governor.setTeam(address(this));
 
 
-        whitelist.push(address(fractal));
+        whitelist.push(address(token));
         whitelist.push(address(DAI));
         voter.initialize(whitelist, address(minter));
         //minter.initialize([], [], 0);
@@ -81,30 +81,30 @@ contract Emission is Test {
         // ---
         DAI.mint(address(this), TOKEN_100);
         DAI.approve(address(router), TOKEN_100);
-        fractal.approve(address(router), TOKEN_100);
+        token.approve(address(router), TOKEN_100);
 
         router.addLiquidityETH{value : TOKEN_100}(address(DAI), false, TOKEN_100, 0, 0, address(this), block.timestamp);
-        router.addLiquidityETH{value : TOKEN_100}(address(fractal), false, TOKEN_100, 0, 0, address(this), block.timestamp);
+        router.addLiquidityETH{value : TOKEN_100}(address(token), false, TOKEN_100, 0, 0, address(this), block.timestamp);
 
         pool_eth_dai = Pair( pairFactory.getPair(address(WETH),address(DAI), false) );
-        pool_eth_fractal = Pair( pairFactory.getPair(address(WETH),address(fractal), false) );
+        pool_eth_token = Pair( pairFactory.getPair(address(WETH),address(token), false) );
     }
     function getEpoch() public returns(uint){
-        InternalBribe bribe = InternalBribe(gauge_eth_fractal.internal_bribe());
+        InternalBribe bribe = InternalBribe(gauge_eth_token.internal_bribe());
         return bribe.getEpochStart(block.timestamp);
     }
     function testExec() public {
         vm.warp(block.timestamp + 86400 * 7);
         vm.roll(block.number + 1);
 
-        gauge_eth_fractal = Gauge(voter.createGauge(address(pool_eth_fractal)));
+        gauge_eth_token = Gauge(voter.createGauge(address(pool_eth_token)));
         vm.roll(block.number + 1);
         uint duration = 4 * 365 * 86400;
-        fractal.approve(address(escrow), fractal.balanceOf(address(this)));
-        uint id = escrow.create_lock(fractal.balanceOf(address(this)), duration);
+        token.approve(address(escrow), token.balanceOf(address(this)));
+        uint id = escrow.create_lock(token.balanceOf(address(this)), duration);
 
         address[] memory pools = new address[](1);
-        pools[0] = address(pool_eth_fractal);
+        pools[0] = address(pool_eth_token);
         uint256[] memory weights = new uint256[](1);
         weights[0] = 5000;
         console.log('epoch 0', getEpoch());
@@ -122,14 +122,14 @@ contract Emission is Test {
         uint[] memory emptyAmounts = new uint[](1);
         emptyAmounts[0] = 1e18;
         minter.initialize(emptyAddresses, emptyAmounts, 1e18);
-        console.log('a', fractal.balanceOf(address(this))/1e18);
+        console.log('a', token.balanceOf(address(this))/1e18);
         voter.distro();
-        console.log('b', fractal.balanceOf(address(this))/1e18);
+        console.log('b', token.balanceOf(address(this))/1e18);
         vm.warp(block.timestamp + (86400 * 7)+ 1 );
         vm.roll(block.number + 1);
         console.log('epoch 2', getEpoch());
         voter.distro();
-        console.log('c', fractal.balanceOf(address(this))/1e18);
+        console.log('c', token.balanceOf(address(this))/1e18);
     }
 
 }

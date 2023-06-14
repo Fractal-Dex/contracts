@@ -24,11 +24,11 @@ const config: HardhatUserConfig = {
             initialBaseFeePerGas: 0,
         },
         mainnet: {
-            url: `https://rpc.mantle.xyz`,
+            url: process.env.RPC_MAINNET,
             accounts: [process.env.PRIVATE_KEY!]
         },
         testnet: {
-            url: `https://rpc.testnet.mantle.xyz`,
+            url: process.env.RPC_TESTNET,
             accounts: [process.env.PRIVATE_KEY!]
         },
 
@@ -44,28 +44,10 @@ const config: HardhatUserConfig = {
     },
     etherscan: {
         apiKey: {
-            testnet: 'x',
-            mainnet: 'x',
+            testnet: `${process.env.BSCSCAN}`,
+            mainnet: `${process.env.BSCSCAN}`,
             bscTestnet: `${process.env.BSCSCAN}`
-        },
-        customChains: [
-            {
-                network: "mainnet",
-                chainId: 5000,
-                urls: {
-                    apiURL: "https://explorer.mantle.xyz/api",
-                    browserURL: "https://explorer.mantle.xyz"
-                }
-            },
-            { // npx hardhat verify --list-networks
-                network: "testnet",
-                chainId: 5001,
-                urls: {
-                    apiURL: "https://explorer.testnet.mantle.xyz/api",
-                    browserURL: "https://explorer.testnet.mantle.xyz"
-                }
-            }
-        ]
+        }
     }
 };
 

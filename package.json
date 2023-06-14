@@ -1,7 +1,7 @@
 {
-  "name": "Fractal",
+  "name": "Token",
   "version": "1.0.1",
-  "description": "Base layer AMM on KAVA",
+  "description": "Base layer AMM on LORE",
   "license": "MIT",
   "directories": {
     "lib": "lib"

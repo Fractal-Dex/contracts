@@ -7,7 +7,7 @@ let tx; // running tx variable to wait for execution
 function get(name: string): string {
     if (CONTRACTS[name])
         return CONTRACTS[name];
-    const cache = `../contracts-${chainId}.json`;
+    const cache = `contracts-${chainId}.json`;
     if (!fs.existsSync(cache))
         fs.writeFileSync(cache, "{}");
     const contracts = fs.readFileSync(cache, "utf8");
@@ -21,7 +21,7 @@ function get(name: string): string {
 }
 
 function set(name: string, addr: string): string {
-    const cache = `../contracts-${chainId}.json`;
+    const cache = `contracts-${chainId}.json`;
     if (!fs.existsSync(cache))
         fs.writeFileSync(cache, "{}");
     const contracts = fs.readFileSync(cache, "utf8");
@@ -53,19 +53,16 @@ async function verify(contract: any, args: any[] = []) {
 async function main() {
     const network = await hre.ethers.provider.getNetwork();
     chainId = network.chainId;
-    mainNet = chainId === 5000;
-    testNet = chainId === 5001;
+    mainNet = chainId === 56;
+    testNet = chainId === 97;
     const CONFIG = getDeploymentConfig(mainNet);
     // public key from private key:
     const signer = new hre.ethers.Wallet(process.env.PRIVATE_KEY);
     console.log(`#Network: ${chainId}, deployer: ${signer.address}`);
-    return;
 
     // Load
     const [
-        UniswapV2Oracle,
         Token,
-        Option,
         GaugeFactory,
         BribeFactory,
         PairFactory,
@@ -81,9 +78,7 @@ async function main() {
         MerkleClaim,
         WrappedExternalBribeFactory
     ] = await Promise.all([
-        hre.ethers.getContractFactory("UniswapV2Oracle"),
         hre.ethers.getContractFactory("Token"),
-        hre.ethers.getContractFactory("Option"),
         hre.ethers.getContractFactory("GaugeFactory"),
         hre.ethers.getContractFactory("BribeFactory"),
         hre.ethers.getContractFactory("PairFactory"),
@@ -100,12 +95,11 @@ async function main() {
         hre.ethers.getContractFactory("WrappedExternalBribeFactory"),
     ]);
 
-    const magma = await Option.deploy();
-    await magma.deployed();
-    set("Option", magma.address);
-    await verify(magma);
+    const token = await Token.deploy();
+    await token.deployed();
+    set("Token", token.address);
+    await verify(token);
 
-    // deploy router and factory to be able to create the pair for oracle:
 
     const pairFactory = await PairFactory.deploy();
     await pairFactory.deployed();
@@ -122,41 +116,6 @@ async function main() {
     await router2.deployed();
     set("Router2", router2.address);
     await verify(router2, routerArgs);
-
-    // create pair for oracle:
-    const oraclePair = await pairFactory.createPair(CONFIG.WETH, magma.address);
-    await oraclePair.deployed();
-    const oraclePairAddress = await pairFactory.getPair(CONFIG.WETH, magma.address);
-    set("OraclePair", oraclePairAddress);
-
-    // deploy the oracle:
-    const oracleArgs = [
-        oraclePairAddress,
-        CONFIG.WETH,
-    ];
-    const oracle = await UniswapV2Oracle.deploy(...oracleArgs);
-    await oracle.deployed();
-    set("Oracle", oracle.address);
-    await verify(oracle, oracleArgs);
-
-    // deploy option token:
-    const oOptionArgs = [
-        "Option Option",
-        "oOption",
-        CONFIG.teamEOA,
-        CONFIG.WETH,
-        CONTRACTS.Option,
-        CONTRACTS.Oracle,
-    ];
-    const omagma = await Token.deploy(...oOptionArgs);
-    await omagma.deployed();
-    set("oOption", magma.address);
-    await verify(omagma, oOptionArgs);
-    // allow option token to mint Option:
-    tx = await magma.setRedemptionReceiver(omagma.address);
-    await tx.wait();
-    // set option treasure, this is where option payment goes:
-    tx = await omagma.setTreasury(CONFIG.teamTreasure);
 
     const gaugeFactory = await GaugeFactory.deploy();
     await gaugeFactory.deployed();
@@ -179,7 +138,7 @@ async function main() {
     set("VeArtProxy", artProxy.address);
     await verify(artProxy);
 
-    const escrowArgs = [magma.address, artProxy.address];
+    const escrowArgs = [token.address, artProxy.address];
     const escrow = await VotingEscrow.deploy(...escrowArgs);
     await escrow.deployed();
     set("VotingEscrow", escrow.address);
@@ -215,8 +174,6 @@ async function main() {
     await minter.deployed();
     set("Minter", minter.address);
     await verify(minter, minterArgs);
-    tx = await omagma.addMinter(minter.address);
-    await tx.wait();
 
     const governorArgs = [escrow.address];
     const governor = await TokenGovernor.deploy(...governorArgs);
@@ -224,21 +181,20 @@ async function main() {
     set("TokenGovernor", escrow.address);
     await verify(governor, governorArgs);
 
-    const claimArgs = [magma.address, CONFIG.merkleRoot];
+    const claimArgs = [token.address, CONFIG.merkleRoot];
     const claim = await MerkleClaim.deploy(...claimArgs);
     await claim.deployed();
     set("MerkleClaim", claim.address);
     await verify(claim, claimArgs);
 
-
     // Initialize
-    tx = await magma.initialMint(CONFIG.teamTreasure, CONFIG.teamAmount);
+    tx = await token.initialMint(CONFIG.teamTreasure, CONFIG.teamAmount);
     tx.wait();
 
-    tx = await magma.addMinter(claim.address);
+    tx = await token.setMerkleClaim(claim.address);
     tx.wait();
 
-    tx = await magma.addMinter(minter.address);
+    tx = await token.setMinter(minter.address);
     tx.wait();
 
     tx = await pairFactory.setPauser(CONFIG.teamEOA);
@@ -256,9 +212,6 @@ async function main() {
     tx = await voter.setEmergencyCouncil(CONFIG.teamEOA);
     tx.wait();
 
-    tx = await distributor.setTeam(minter.address);
-    tx.wait();
-
     tx = await distributor.setDepositor(minter.address);
     tx.wait();
 
@@ -267,21 +220,21 @@ async function main() {
 
 
     // Whitelist
-    const nativeToken = [magma.address];
+    const nativeToken = [token.address];
     const tokenWhitelist = nativeToken.concat(CONFIG.tokenWhitelist);
     tx = await voter.initialize(tokenWhitelist, minter.address);
     tx.wait();
 
-    tx = await minter.initialize(CONFIG.partnerAddrs, CONFIG.partnerAmts);
+    let total:bigint = BigInt(0);
+    for( let i in CONFIG.partnerAmts ){
+        total += BigInt(CONFIG.partnerAmts[i]);
+    }
+    tx = await minter.initialize(CONFIG.partnerAddrs, CONFIG.partnerAmts, total);
     tx.wait();
 
     tx = await minter.setTeam(CONFIG.teamMultisig)
     tx.wait();
 
-    console.log(`Deployment finished for chain: ${chainId}`);
-    for (let i in CONTRACTS) {
-        console.log(` - ${i} = ${CONTRACTS[i]}`);
-    }
 }
 
 main()

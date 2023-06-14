@@ -16,8 +16,8 @@ import "contracts/PairFees.sol";
 import "contracts/RewardsDistributor.sol";
 import "contracts/Router.sol";
 import "contracts/Router2.sol";
-import "contracts/Fractal.sol";
-import "contracts/FractalLibrary.sol";
+import "contracts/Token.sol";
+import "contracts/TokenLibrary.sol";
 import "contracts/Voter.sol";
 import "contracts/VeArtProxy.sol";
 import "contracts/VotingEscrow.sol";
@@ -47,14 +47,14 @@ abstract contract BaseTest is Test, TestOwner {
     MockERC20 FRAX;
     MockERC20 DAI;
     TestWETH WETH; // Mock WETH token
-    Fractal FRACTAL;
+    Token Token;
     MockERC20 WEVE;
     MockERC20 LR; // late reward
     TestToken stake; // MockERC20 with claimFees() function that returns (0,0)
     PairFactory factory;
     Router router;
     Router2 router2;
-    FractalLibrary lib;
+    TokenLibrary lib;
     Pair pair;
     Pair pair2;
     Pair pair3;
@@ -73,7 +73,7 @@ abstract contract BaseTest is Test, TestOwner {
         USDC = new MockERC20("USDC", "USDC", 6);
         FRAX = new MockERC20("FRAX", "FRAX", 18);
         DAI = new MockERC20("DAI", "DAI", 18);
-        FRACTAL = new Fractal();
+        Token = new Token();
         WEVE = new MockERC20("WEVE", "WEVE", 18);
         LR = new MockERC20("LR", "LR", 18);
         WETH = new TestWETH();
@@ -88,9 +88,9 @@ abstract contract BaseTest is Test, TestOwner {
         }
     }
 
-    function mintFractal(address[] memory _accounts, uint256[] memory _amounts) public {
+    function mintToken(address[] memory _accounts, uint256[] memory _amounts) public {
         for (uint256 i = 0; i < _amounts.length; i++) {
-            FRACTAL.mint(_accounts[i], _amounts[i]);
+            Token.mint(_accounts[i], _amounts[i]);
         }
     }
 
@@ -126,7 +126,7 @@ abstract contract BaseTest is Test, TestOwner {
         router = new Router(address(factory), address(WETH));
         router2 = new Router2(address(factory), address(WETH));
         assertEq(router.factory(), address(factory));
-        lib = new FractalLibrary(address(router));
+        lib = new TokenLibrary(address(router));
     }
 
     function deployPairWithOwner(address _owner) public {

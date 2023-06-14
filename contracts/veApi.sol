@@ -19,22 +19,22 @@ interface IVoter {
 interface IveNFT {
     function totalSupply() external view returns (uint256);
 }
-interface IFractalTvlOracle {
+interface ITokenTvlOracle {
     function p_t_coin_usd(address) external view returns (uint256);
 }
 
-contract Fractal_VE_Api is Ownable {
-    IERC20 public FRACTAL ;//= IERC20(0x3Fd3A0c85B70754eFc07aC9Ac0cbBDCe664865A6);
+contract Token_VE_Api is Ownable {
+    IERC20 public Token ;//= IERC20(0x3Fd3A0c85B70754eFc07aC9Ac0cbBDCe664865A6);
     IVoter public VOTER ;//= IVoter(0x4bebEB8188aEF8287f9a7d1E4f01d76cBE060d5b);
     IveNFT public veNFT ;//= IveNFT(0x8313f3551C4D3984FfbaDFb42f780D0c8763Ce94);
-    IFractalTvlOracle public ORACLE; //= IFractalTvlOracle(0x0786c3a78f5133F08C1c70953B8B10376bC6dCad);
+    ITokenTvlOracle public ORACLE; //= ITokenTvlOracle(0x0786c3a78f5133F08C1c70953B8B10376bC6dCad);
 
     address[] public excluded = [address(0), 0x000000000000000000000000000000000000dEaD];
     address public pool2;// = 0x3d6c56f6855b7Cc746fb80848755B0a9c3770122;
 
-    constructor(address _oracle, address _pool2, address _fractal, address _voter, address _ve ) {
-        ORACLE = IFractalTvlOracle(_oracle);
-        FRACTAL = IERC20(_fractal);
+    constructor(address _oracle, address _pool2, address _token, address _voter, address _ve ) {
+        ORACLE = ITokenTvlOracle(_oracle);
+        Token = IERC20(_token);
         VOTER = IVoter(_voter);
         veNFT = IveNFT(_ve);
         pool2 = _pool2;
@@ -44,7 +44,7 @@ contract Fractal_VE_Api is Ownable {
         pool2 = _pool2;
     }
     function setOracle(address _oracle) public onlyOwner {
-        ORACLE = IFractalTvlOracle(_oracle);
+        ORACLE = ITokenTvlOracle(_oracle);
     }
 
     function addExcluded(address _e) public onlyOwner {
@@ -57,11 +57,11 @@ contract Fractal_VE_Api is Ownable {
     }
 
     function name() public pure returns(string memory) {
-        return "Fractal.s";
+        return "Token.s";
     }
 
     function symbol() public pure returns(string memory) {
-        return "FRACTAL.s";
+        return "Token.s";
     }
 
     function decimals() public pure returns(uint8) {
@@ -69,16 +69,16 @@ contract Fractal_VE_Api is Ownable {
     }
 
     function allowance(address _o, address _s) public view returns(uint256) {
-        return FRACTAL.allowance(_o, _s);
+        return Token.allowance(_o, _s);
     }
 
     function balanceOf(address _o) public view returns(uint256) {
-        return FRACTAL.balanceOf(_o);
+        return Token.balanceOf(_o);
     }
 
     function inExcluded() public view returns(uint256 _t) {
         for(uint i;i<excluded.length;i++) {
-            _t += FRACTAL.balanceOf(excluded[i]);
+            _t += Token.balanceOf(excluded[i]);
         }
         return _t;
     }
@@ -88,17 +88,17 @@ contract Fractal_VE_Api is Ownable {
         for(uint i;i<_l;i++) {
             address _p = VOTER.pools(i);
             address _g = VOTER.gauges(_p);
-            _t += FRACTAL.balanceOf(_g);
+            _t += Token.balanceOf(_g);
         }
         return _t;
     }
 
     function inNFT() public view returns(uint256) {
-        return FRACTAL.balanceOf(address(veNFT));
+        return Token.balanceOf(address(veNFT));
     }
 
     function dilutedSupply() public view returns(uint256) {
-        return FRACTAL.totalSupply();
+        return Token.totalSupply();
     }
 
     function outstandingSupply() public view returns(uint256) {
@@ -131,7 +131,7 @@ contract Fractal_VE_Api is Ownable {
     }
 
     function liquidity() public view returns(uint256) {
-        return ( price() * FRACTAL.balanceOf(pool2) * 2 ) / 1e18;
+        return ( price() * Token.balanceOf(pool2) * 2 ) / 1e18;
     }
 
     function circulatingMarketCap() public view returns(uint256) {

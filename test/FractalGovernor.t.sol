@@ -1,9 +1,9 @@
 pragma solidity 0.8.13;
 
 import "./BaseTest.sol";
-import "contracts/FractalGovernor.sol";
+import "contracts/TokenGovernor.sol";
 
-contract FractalGovernorTest is BaseTest {
+contract TokenGovernorTest is BaseTest {
     VotingEscrow escrow;
     GaugeFactory gaugeFactory;
     BribeFactory bribeFactory;
@@ -12,7 +12,7 @@ contract FractalGovernorTest is BaseTest {
     Minter minter;
     Gauge gauge;
     InternalBribe bribe;
-    FractalGovernor governor;
+    TokenGovernor governor;
 
     function setUp() public {
         deployOwners();
@@ -22,18 +22,18 @@ contract FractalGovernorTest is BaseTest {
         amounts[0] = 2e25;
         amounts[1] = 1e25;
         amounts[2] = 1e25;
-        mintFractal(owners, amounts);
+        mintToken(owners, amounts);
 
         VeArtProxy artProxy = new VeArtProxy();
-        escrow = new VotingEscrow(address(FRACTAL), address(artProxy));
+        escrow = new VotingEscrow(address(Token), address(artProxy));
 
-        FRACTAL.approve(address(escrow), 97 * TOKEN_1);
+        Token.approve(address(escrow), 97 * TOKEN_1);
         escrow.create_lock(97 * TOKEN_1, 4 * 365 * 86400);
         vm.roll(block.number + 1);
 
         // owner2 owns less than quorum, 3%
         vm.startPrank(address(owner2));
-        FRACTAL.approve(address(escrow), 3 * TOKEN_1);
+        Token.approve(address(escrow), 3 * TOKEN_1);
         escrow.create_lock(3 * TOKEN_1, 4 * 365 * 86400);
         vm.roll(block.number + 1);
         vm.stopPrank();
@@ -54,16 +54,16 @@ contract FractalGovernorTest is BaseTest {
 
         minter = new Minter(address(voter), address(escrow), address(distributor));
         distributor.setDepositor(address(minter));
-        FRACTAL.setMinter(address(minter));
+        Token.setMinter(address(minter));
 
-        FRACTAL.approve(address(gaugeFactory), 15 * TOKEN_100K);
+        Token.approve(address(gaugeFactory), 15 * TOKEN_100K);
         voter.createGauge(address(pair));
         address gaugeAddress = voter.gauges(address(pair));
         address bribeAddress = voter.internal_bribes(gaugeAddress);
         gauge = Gauge(gaugeAddress);
         bribe = InternalBribe(bribeAddress);
 
-        governor = new FractalGovernor(escrow);
+        governor = new TokenGovernor(escrow);
         voter.setGovernor(address(governor));
     }
 
@@ -89,10 +89,10 @@ contract FractalGovernorTest is BaseTest {
         vm.stopPrank();
     }
 
-    function testVeFractalMergesAutoDelegates() public {
+    function testVeTokenMergesAutoDelegates() public {
         // owner2 + owner3 > quorum
         vm.startPrank(address(owner3));
-        FRACTAL.approve(address(escrow), 3 * TOKEN_1);
+        Token.approve(address(escrow), 3 * TOKEN_1);
         escrow.create_lock(3 * TOKEN_1, 4 * 365 * 86400);
         vm.roll(block.number + 1);
         uint256 pre2 = escrow.getVotes(address(owner2));

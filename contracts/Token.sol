@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "contracts/interfaces/IFractal.sol";
+import "contracts/interfaces/IToken.sol";
 
-contract Fractal is IFractal {
+contract Token is IToken {
 
     string public constant name = "Fractal";
     string public constant symbol = "FRAC";
@@ -42,10 +42,10 @@ contract Fractal is IFractal {
     }
 
     // Initial mint: total 40M
-    function initialMint(address _recipient) external {
+    function initialMint(address _recipient, uint _amount) external {
         require(msg.sender == minter && !initialMinted);
         initialMinted = true;
-        _mint(_recipient, 40_000_000 * 1e18);
+        _mint(_recipient, _amount);
     }
 
     function approve(address _spender, uint _value) external returns (bool) {

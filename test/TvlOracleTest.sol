@@ -2,14 +2,14 @@ pragma solidity 0.8.13;
 
 import './BaseTest.sol';
 import "contracts/TvlOracle.sol";
-import "contracts/Fractal.sol";
+import "contracts/Token.sol";
 
 contract TvlOracleTest is BaseTest {
     uint TOKEN_100 = 100 * 1e18;
     uint TOKEN_100e6 = 100 * 1e6;
     TvlOracle oracle;
-    TvlOracle oracle_fractal;
-    Pair poolFractal;
+    TvlOracle oracle_token;
+    Pair poolToken;
     function setUp() public {
         deployCoins();
         factory = new PairFactory();
@@ -21,19 +21,19 @@ contract TvlOracleTest is BaseTest {
         router2.addLiquidityETH{value : TOKEN_100}(address(USDC), false, TOKEN_100e6, 0, 0, address(this), block.timestamp);
         pair = Pair(factory.getPair(address(USDC), address(WETH), false));
 
-        // fractal/usdc
+        // token/usdc
         USDC.mint(address(this), TOKEN_100e6);
         USDC.approve(address(router2), TOKEN_100e6);
-        FRACTAL.mint(address(this), TOKEN_100);
-        FRACTAL.approve(address(router2), TOKEN_100);
-        router2.addLiquidity(address(FRACTAL), address(USDC), false, TOKEN_100, TOKEN_100e6, 0, 0, address(this), block.timestamp);
-        poolFractal = Pair(factory.getPair(address(USDC), address(FRACTAL), false));
+        Token.mint(address(this), TOKEN_100);
+        Token.approve(address(router2), TOKEN_100);
+        router2.addLiquidity(address(Token), address(USDC), false, TOKEN_100, TOKEN_100e6, 0, 0, address(this), block.timestamp);
+        poolToken = Pair(factory.getPair(address(USDC), address(Token), false));
 
         address[3] memory uwl = [address(USDC), address(WETH), address(pair)];
         oracle = new TvlOracle(uwl, 6);
 
-        address[3] memory uwl_fractal = [address(USDC), address(FRACTAL), address(poolFractal)];
-        oracle_fractal = new TvlOracle(uwl_fractal, 6);
+        address[3] memory uwl_token = [address(USDC), address(Token), address(poolToken)];
+        oracle_token = new TvlOracle(uwl_token, 6);
 
     }
 
@@ -45,8 +45,8 @@ contract TvlOracleTest is BaseTest {
         uint price_eth = oracle.p_t_coin_usd(address(pair));
         console2.log('eth/usdc price', price_eth);
 
-        uint price_fractal = oracle.p_t_coin_usd(address(poolFractal));
-        console2.log('fractal/usdc price', price_fractal);
+        uint price_token = oracle.p_t_coin_usd(address(poolToken));
+        console2.log('token/usdc price', price_token);
 
     }
 }

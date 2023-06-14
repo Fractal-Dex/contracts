@@ -17,28 +17,28 @@ contract ImbalanceTest is BaseTest {
         mintStables();
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1e25;
-        mintFractal(owners, amounts);
+        mintToken(owners, amounts);
         VeArtProxy artProxy = new VeArtProxy();
-        escrow = new VotingEscrow(address(FRACTAL), address(artProxy));
+        escrow = new VotingEscrow(address(Token), address(artProxy));
     }
 
     function createLock() public {
         deployBaseCoins();
 
-        FRACTAL.approve(address(escrow), TOKEN_1);
+        Token.approve(address(escrow), TOKEN_1);
         escrow.create_lock(TOKEN_1, 4 * 365 * 86400);
         vm.warp(1);
         assertGt(escrow.balanceOfNFT(1), 995063075414519385);
-        assertEq(FRACTAL.balanceOf(address(escrow)), TOKEN_1);
+        assertEq(Token.balanceOf(address(escrow)), TOKEN_1);
     }
 
     function votingEscrowMerge() public {
         createLock();
 
-        FRACTAL.approve(address(escrow), TOKEN_1);
+        Token.approve(address(escrow), TOKEN_1);
         escrow.create_lock(TOKEN_1, 4 * 365 * 86400);
         assertGt(escrow.balanceOfNFT(2), 995063075414519385);
-        assertEq(FRACTAL.balanceOf(address(escrow)), 2 * TOKEN_1);
+        assertEq(Token.balanceOf(address(escrow)), 2 * TOKEN_1);
         escrow.merge(2, 1);
         assertGt(escrow.balanceOfNFT(1), 1990039602248405587);
         assertEq(escrow.balanceOfNFT(2), 0);
@@ -87,7 +87,7 @@ contract ImbalanceTest is BaseTest {
         tokens[0] = address(USDC);
         tokens[1] = address(FRAX);
         tokens[2] = address(DAI);
-        tokens[3] = address(FRACTAL);
+        tokens[3] = address(Token);
         voter.initialize(tokens, address(owner));
 
         assertEq(voter.length(), 0);
@@ -96,7 +96,7 @@ contract ImbalanceTest is BaseTest {
     function deployPairFactoryGauge() public {
         deployVoter();
 
-        FRACTAL.approve(address(gaugeFactory), 5 * TOKEN_100K);
+        Token.approve(address(gaugeFactory), 5 * TOKEN_100K);
         voter.createGauge(address(pair3));
         assertFalse(voter.gauges(address(pair3)) == address(0));
 
