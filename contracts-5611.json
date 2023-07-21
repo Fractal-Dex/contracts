@@ -3,9 +3,9 @@
     "usdt": "0xe25D65332c94bb48ee3367a935c5d5f53b2404A3",
     "wbtc": "0x370267c55066D88bFE7C136Ed3136A88a4b7225d",
     "weth": "0x07D91f7623DA4674b81B9811551DB4B4F8AbeA72",
-    "Token": "0x0fCfB023c73407271D87BC6d80B0440aD6eDB9F9",
-    "PairFactory": "0xc8188C2AfDFd990293d938092567bE8ed9E78Ec9",
-    "Router": "0x424c033ab0b79F183B4e0189B20F9eEeeBD19350",
+    "Token": "0x1D7307c0F283Fd5F98fE84290cA7f3433cc94035",
+    "PairFactory": "0x09a9C738dB0BA3E47D21d43d23de606666009066",
+    "Router": "0x008b72621420DaE6869E6df9fC61466ecbAC973e",
     "Router2": "0x7D58DA6719e575e9EC8e50E249352554829aA905",
     "GaugeFactory": "0x11Eb992C1deAec6028c8eebB6C3e0aDa55B57741",
     "BribeFactory": "0xcD3b4d44e353C28e5A7Cd6E64bD21e51426D0031",
@@ -18,5 +18,14 @@
     "Minter": "0xa142a94b22d77f527887E603F3316B546D6a51Cc",
     "TokenGovernor": "0x942069362bC4aca5cFEAEaA2bB0a772846435C77",
     "MerkleClaim": "0x5b4DE9c41c08DDe6cbcACceA12FB2fd899C39184",
-    "TokenLibrary": "0xF869C8e99182532Cb9241967bf14055a26205080"
+    "TokenLibrary": "0xF869C8e99182532Cb9241967bf14055a26205080",
+    "Token.initialMint": "0x0f4f778bc6fb1571b9812ecb592ec3256de3810b10b8732df203b76ac67e77d3",
+    "Token.setMerkleClaim": "0x09d3f6666cdd0844cc70ea9a737f372709fc2db286fab929d6d339accfba6cbe",
+    "Token.setMinter": "0x34262440839011cfcadfac38f691b462c30c24b073df5a44ae562d8f8e8e774a",
+    "PairFactory.setPauser": "0xfa7979b04762ad6309d6e38c10a89ecd6d756641eeb79f09e9e312eb0bdef190",
+    "VotingEscrow.setTeam": "0x9961df9e181a59b85433945afe3b518c8067ebead135d3cbdeb8651ba3932132",
+    "Voter.setGovernor": "0xe74709d6d6cee85d82a6487f14c82f349f701ee16e1895e0b5a50d9fe9b9a243",
+    "Voter.setEmergencyCouncil": "0x9472054ecf7506bf85653962bcd4377b766ced96d1138a89a4bc4d8ac6ddd694",
+    "TokenGovernor.setTeam": "0x37304b9725b6161bcbd4de422f0108770e228c20aa60b01d78d240ab8aeb8fc5",
+    "Minter.setTeam": "0xe27737912bfcd524cd307150a368067bfd9b9ef47fa7e9abcec3c38793a739da"
 }

@@ -13,5 +13,18 @@
     "WrappedExternalBribeFactory": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
     "Minter": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
     "TokenGovernor": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
-    "MerkleClaim": "0x9A676e781A523b5d0C0e43731313A708CB607508"
+    "MerkleClaim": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+    "Token.initialMint": "0xb248aab99ed8eae1c60a2a4038e256d6f8b76ba6eed0fcd430726d2b6e44d0c5",
+    "Token.setMerkleClaim": "0x672fecc8ba62ac6dcfbdb912d6687cabff296092011c01e0d261b7fa47a512aa",
+    "Token.setMinter": "0xec2594bf6b760dd1ad19738812ebf93b3b88d986e20a65b94bed86b06cfde773",
+    "PairFactory.setPauser": "0xa1662874c57f50b5d1abaeb9ba4ce8b7226d89b438574f8708d315a5dbd9b88a",
+    "VotingEscrow.setVoter": "0x0dac841190a3ab3919c380fe9dc6059075e569c26e505be5ed437d6b38be3255",
+    "VotingEscrow.setTeam": "0xbe5960ce4b2d76e01ddbc9727a9ac0250b625bf4febd94f77c4dae358c612289",
+    "Voter.setGovernor": "0x63f7c2ba589ba061ad6538264a0d673c1d0d57d3a733b9c3f1b0fcf1a08f692b",
+    "Voter.setEmergencyCouncil": "0x21019b21d9a715a21e6df2e3b73138985d37c6e6a5b99e5fb3e520a1fb5f5e04",
+    "RewardsDistributor.setDepositor": "0x3dc9764a9198f9c66311c8f636285d42da7f74fa9aa5c809eeae3fb0ba66e14a",
+    "TokenGovernor.setTeam": "0x86800b5fdcef84b2639b988259b8c139f10ba81fcf88303b1a444b40b4ed8b73",
+    "Voter.initialize": "0x790d9a17c2305e25653331519255c96c01c9f04f3353a15ee879c2b57d3ee07f",
+    "Minter.initialize": "0x706b9df158de36122e70aba6b9a70bc338d34c39183175d473a9d720d54d7eb3",
+    "Minter.setTeam": "0x1d464265c63b94c1a65769be3e306189affa937cb1148e52e1c733ab26c524b7"
 }
