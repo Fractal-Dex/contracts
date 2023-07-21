@@ -115,11 +115,17 @@ async function main() {
     deployer = new hre.ethers.Wallet(privateKey);
     console.log(`#Network: ${chainId}, deployer: ${deployer.address}`);
     const [
-        Multicall
+        Multicall,
+        Multicall2,
+        Multicall3
     ] = await Promise.all([
-        hre.ethers.getContractFactory("Multicall")
+        hre.ethers.getContractFactory("Multicall"),
+        hre.ethers.getContractFactory("Multicall2"),
+        hre.ethers.getContractFactory("Multicall3"),
     ]);
-    await deployOrLoad("Multicall", Multicall);
+    //await deployOrLoad("Multicall", Multicall);
+    await deployOrLoad("Multicall2", Multicall2);
+    await deployOrLoad("Multicall3", Multicall3);
 }
 
 

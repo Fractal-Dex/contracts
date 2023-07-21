@@ -28,7 +28,9 @@ Version: 0.8.13
 - [contracts/Minter.sol](contracts/Minter.sol) [`0xa142a94b22d77f527887E603F3316B546D6a51Cc`](https://opbnbscan.com/address/0xa142a94b22d77f527887E603F3316B546D6a51Cc) ([abi](abi/Minter.json))
 - [contracts/TokenGovernor.sol](contracts/TokenGovernor.sol) [`0x942069362bC4aca5cFEAEaA2bB0a772846435C77`](https://opbnbscan.com/address/0x942069362bC4aca5cFEAEaA2bB0a772846435C77) ([abi](abi/TokenGovernor.json))
 - [contracts/MerkleClaim.sol](contracts/MerkleClaim.sol) [`0x5b4DE9c41c08DDe6cbcACceA12FB2fd899C39184`](https://opbnbscan.com/address/0x5b4DE9c41c08DDe6cbcACceA12FB2fd899C39184) ([abi](abi/MerkleClaim.json))
-- [contracts/Multicall.sol](contracts/Multicall.sol) [`0xC355e18e1821d15Fb47cf7c0aa6584878fF55f1C`](https://opbnbscan.com/address/0xC355e18e1821d15Fb47cf7c0aa6584878fF55f1C) ([abi](abi/MerkleClaim.json))
+- [contracts/Multicall.sol](contracts/Multicall.sol) [`0xC355e18e1821d15Fb47cf7c0aa6584878fF55f1C`](https://opbnbscan.com/address/0xC355e18e1821d15Fb47cf7c0aa6584878fF55f1C) ([abi](abi/Multicall.json))
+- [contracts/Multicall2.sol](contracts/Multicall2.sol) [`0xF2a66E86539db7D954507F1326b411C9cBaC31b0`](https://opbnbscan.com/address/0xF2a66E86539db7D954507F1326b411C9cBaC31b0) ([abi](abi/Multicall2.json))
+- [contracts/Multicall3.sol](contracts/Multicall3.sol) [`0xfd2325eCED4118c6AFa2F044089385B0A15dE6a8`](https://opbnbscan.com/address/0xfd2325eCED4118c6AFa2F044089385B0A15dE6a8) ([abi](abi/Multicall3.json))
 # Transactions:
 
  - Token.initialMint: [`0x0f4f`](https://opbnbscan.com/tx/0x0f4f778bc6fb1571b9812ecb592ec3256de3810b10b8732df203b76ac67e77d3)
