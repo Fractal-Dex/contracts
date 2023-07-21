@@ -2,7 +2,7 @@ pragma solidity 0.8.13;
 
 import './BaseTest.sol';
 import "contracts/WrappedExternalBribe.sol";
-import "contracts/factories/WrappedExternalBribeFactory.sol";
+import "../contracts/WrappedExternalBribeFactory.sol";
 
 contract WrappedExternalBribesTest is BaseTest {
     VotingEscrow escrow;

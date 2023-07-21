@@ -3,6 +3,7 @@ function toWei(n: string | number) {
     return ethers.utils.parseEther(n.toString());
 }
 const mainnet_config = {
+    EXPLORER: "https://opbnbscan.com/",
     WETH: "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b",
     USDC: "0xfA9343C3897324496A05fC75abeD6bAC29f8A40f",
     USDC_DECIMALS: 6,
@@ -26,8 +27,12 @@ const mainnet_config = {
 };
 
 const testnetArgs = {
-    WETH: "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
-    USDC: "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee",
+    EXPLORER: "https://opbnbscan.com/",
+    WETH: "0x07D91f7623DA4674b81B9811551DB4B4F8AbeA72",
+    DAI: "0x5eBD3B4dB6F999533f6dfE4930C0A465dC8cF73a",
+    USDC: "0xe25D65332c94bb48ee3367a935c5d5f53b2404A3",
+    USDT: "0xe25D65332c94bb48ee3367a935c5d5f53b2404A3",
+    WBTC: "0x370267c55066D88bFE7C136Ed3136A88a4b7225d",
     teamEOA: "0xb8e476D9719159CAe682B91354E1ffA8d2F804e3",
     teamTreasure: '0xb8e476D9719159CAe682B91354E1ffA8d2F804e3',
     teamMultisig: "0xb8e476D9719159CAe682B91354E1ffA8d2F804e3",

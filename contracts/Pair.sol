@@ -5,7 +5,7 @@ import 'contracts/libraries/Math.sol';
 import 'contracts/interfaces/IERC20.sol';
 import 'contracts/interfaces/IPair.sol';
 import 'contracts/interfaces/IPairCallee.sol';
-import 'contracts/factories/PairFactory.sol';
+import "./PairFactory.sol";
 import 'contracts/PairFees.sol';
 
 // The base pair of pools, either stable or volatile

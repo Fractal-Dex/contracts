@@ -3,6 +3,7 @@ import fs from "fs";
 import {ethers} from "ethers";
 let chainId: number, mainNet: boolean, testNet: boolean;
 let CONTRACTS: any = {};
+let CONFIG = {};
 let tx; // running tx variable to wait for execution
 let deployer:hre.ethers.Wallet; // signer for tx
 function get(name: string): string {
@@ -14,9 +15,6 @@ function get(name: string): string {
     const contracts = fs.readFileSync(cache, "utf8");
     // @ts-ignore
     const addr = contracts[name];
-    if (!addr) {
-        throw new Error(`Contract ${name} not found in ${cache}`);
-    }
     CONTRACTS[name] = addr;
     return addr;
 }
@@ -30,11 +28,14 @@ function set(name: string, addr: string): string {
     json[name] = addr;
     CONTRACTS[name] = addr;
     fs.writeFileSync(cache, JSON.stringify(json, null, 4));
-    console.log(`# ${name} deployed at ${addr}`);
+    //console.log(`# ${name} deployed at ${addr}`);
     return addr;
 }
 
 async function verify(contract: any, args: any[] = []) {
+
+    return true;
+
     // dump balance of deployer:
     const balance = await hre.ethers.provider.getBalance(deployer.address);
     console.log(` - Balance of deployer: ${ethers.utils.formatEther(balance)}`);
@@ -55,15 +56,57 @@ async function verify(contract: any, args: any[] = []) {
     }
 }
 
+async function flatten(name:string, files:string[]) {
+    let flattened = await hre.run("flatten:get-flattened-sources", { files });
+
+    // Remove every line started with "// SPDX-License-Identifier:"
+    flattened = flattened.replace(/SPDX-License-Identifier:/gm, "License-Identifier:");
+    flattened = `// SPDX-License-Identifier: MIXED\n\n${flattened}`;
+
+    // Remove every line started with "pragma experimental ABIEncoderV2;" except the first one
+    flattened = flattened.replace(/pragma experimental ABIEncoderV2;\n/gm, ((i) => (m) => (!i++ ? m : ""))(0));
+    fs.writeFileSync(`flattened/${name}.sol`, flattened);
+
+}
+
+let README = "";
+async function deployOrLoad(name: string, factory: any, args: any[] = []) {
+    let addr = get(name);
+    if (!addr) {
+        const contract = await factory.deploy(...args);
+        await contract.deployed();
+        addr = contract.address;
+        set(name, addr);
+        await verify(contract, args);
+    }
+    console.log(`# ${name} at ${addr}`);
+    const buildInfo = JSON.parse( fs.readFileSync(`artifacts/contracts/${name}.sol/${name}.json`, "utf8") );
+    const abi = buildInfo.abi;
+    const abiFile = `abi/${name}.json`;
+    fs.writeFileSync(abiFile, JSON.stringify(abi, null, 4));
+    const sourceName = buildInfo.sourceName;
+    const contractName = buildInfo.contractName;
+    await flatten(contractName, [sourceName]);
+    README += `- [${abiFile}](${name}): [${CONFIG.EXPLORER}address/${addr}](\`${addr}\`)\n`;
+    return await hre.ethers.getContractAt(name, addr);
+}
+
 async function main() {
     const network = await hre.ethers.provider.getNetwork();
     chainId = network.chainId;
-    mainNet = chainId === 56;
-    testNet = chainId === 97;
-    const CONFIG = getDeploymentConfig(mainNet);
+    mainNet = chainId === 5610;
+    testNet = chainId === 5611;
+    CONFIG = getDeploymentConfig(mainNet);
     // public key from private key:
     deployer = new hre.ethers.Wallet(process.env.PRIVATE_KEY);
     console.log(`#Network: ${chainId}, deployer: ${deployer.address}`);
+
+    README = `# Network: ${hre.network.name} #${chainId}\n\n`;
+    README += `- Deployer: ${deployer.address}\n\n`;
+    README += `#Compiler:\n\n`;
+    README += `Version: ${hre.userConfig.solidity.version}\n\n`;
+    README += `\`${JSON.stringify(hre.userConfig.solidity.settings.optimizer,undefined,2)}\`\n\n`;
+    README += `# Contracts:\n\n`;
 
     // Load
     const [
@@ -99,146 +142,123 @@ async function main() {
         hre.ethers.getContractFactory("MerkleClaim"),
         hre.ethers.getContractFactory("WrappedExternalBribeFactory"),
     ]);
+    const token = await deployOrLoad("Token", Token);
+    console.log(README);
+    fs.writeFileSync("readme.md", README);
 
-    const token = await Token.deploy();
-    await token.deployed();
-    set("Token", token.address);
-    await verify(token);
+    return;
+    const pairFactory = await deployOrLoad("PairFactory", PairFactory);
+    const router = await deployOrLoad("Router", Router, [pairFactory.address, CONFIG.WETH]);
+    const router2 = await deployOrLoad("Router2", Router2, [pairFactory.address, CONFIG.WETH]);
+    const gaugeFactory = await deployOrLoad("GaugeFactory", GaugeFactory);
+    const bribeFactory = await deployOrLoad("BribeFactory", BribeFactory);
+    const library = await deployOrLoad("TokenLibrary", Library, [router2.address]);
+    const artProxy = await deployOrLoad("VeArtProxy", VeArtProxy);
+    const escrow = await deployOrLoad("VotingEscrow", VotingEscrow, [token.address, artProxy.address]);
+    const distributor = await deployOrLoad("RewardsDistributor", RewardsDistributor, [escrow.address]);
+    const voter = await deployOrLoad("Voter", Voter, [escrow.address, pairFactory.address, gaugeFactory.address, bribeFactory.address]);
+    const externalBribeFactory = await deployOrLoad("WrappedExternalBribeFactory", WrappedExternalBribeFactory, [voter.address]);
+    const minter = await deployOrLoad("Minter", Minter, [voter.address, escrow.address, distributor.address]);
+    const governor = await deployOrLoad("TokenGovernor", TokenGovernor, [escrow.address]);
+    const claim = await deployOrLoad("MerkleClaim", MerkleClaim, [token.address, CONFIG.merkleRoot]);
 
-
-    const pairFactory = await PairFactory.deploy();
-    await pairFactory.deployed();
-    set("PairFactory", pairFactory.address);
-    await verify(pairFactory);
-
-    const routerArgs = [pairFactory.address, CONFIG.WETH];
-    const router = await Router.deploy(...routerArgs);
-    await router.deployed();
-    set("Router", router.address);
-    await verify(router, routerArgs);
-
-    const router2 = await Router2.deploy(...routerArgs);
-    await router2.deployed();
-    set("Router2", router2.address);
-    await verify(router2, routerArgs);
-
-    const gaugeFactory = await GaugeFactory.deploy();
-    await gaugeFactory.deployed();
-    set("GaugeFactory", gaugeFactory.address);
-    await verify(gaugeFactory);
-
-    const bribeFactory = await BribeFactory.deploy();
-    await bribeFactory.deployed();
-    set("BribeFactory", bribeFactory.address);
-    await verify(bribeFactory);
-
-    const libraryArgs = [router2.address];
-    const library = await Library.deploy(...libraryArgs);
-    await library.deployed();
-    set("Library", library.address);
-    await verify(library, libraryArgs);
-
-    const artProxy = await VeArtProxy.deploy();
-    await artProxy.deployed();
-    set("VeArtProxy", artProxy.address);
-    await verify(artProxy);
-
-    const escrowArgs = [token.address, artProxy.address];
-    const escrow = await VotingEscrow.deploy(...escrowArgs);
-    await escrow.deployed();
-    set("VotingEscrow", escrow.address);
-    await verify(escrow, escrowArgs);
-
-    const distributorArgs = [escrow.address];
-    const distributor = await RewardsDistributor.deploy(...distributorArgs);
-    await distributor.deployed();
-    set("RewardsDistributor", distributor.address);
-    await verify(distributor, distributorArgs);
-
-    const voterArgs = [
-        escrow.address,
-        pairFactory.address,
-        gaugeFactory.address,
-        bribeFactory.address
-    ];
-    const voter = await Voter.deploy(...voterArgs);
-    await voter.deployed();
-    set("Voter", voter.address);
-    await verify(voter, voterArgs);
-
-    const externalBribeFactoryArgs = [voter.address];
-    const externalBribeFactory = await WrappedExternalBribeFactory.deploy(...externalBribeFactoryArgs);
-    await externalBribeFactory.deployed();
-    set("WrappedExternalBribeFactory", externalBribeFactory.address);
-    await verify(externalBribeFactory, externalBribeFactoryArgs);
-
-    const minterArgs = [ voter.address,
-        escrow.address,
-        distributor.address ];
-    const minter = await Minter.deploy(...minterArgs);
-    await minter.deployed();
-    set("Minter", minter.address);
-    await verify(minter, minterArgs);
-
-    const governorArgs = [escrow.address];
-    const governor = await TokenGovernor.deploy(...governorArgs);
-    await governor.deployed();
-    set("TokenGovernor", escrow.address);
-    await verify(governor, governorArgs);
-
-    const claimArgs = [token.address, CONFIG.merkleRoot];
-    const claim = await MerkleClaim.deploy(...claimArgs);
-    await claim.deployed();
-    set("MerkleClaim", claim.address);
-    await verify(claim, claimArgs);
-
-    // Initialize
-    tx = await token.initialMint(CONFIG.teamTreasure, CONFIG.teamAmount);
-    tx.wait();
-
-    tx = await token.setMerkleClaim(claim.address);
-    tx.wait();
-
-    tx = await token.setMinter(minter.address);
-    tx.wait();
-
-    tx = await pairFactory.setPauser(CONFIG.teamEOA);
-    tx.wait();
-
-    tx = await escrow.setVoter(voter.address);
-    tx.wait();
-
-    tx = await escrow.setTeam(CONFIG.teamEOA);
-    tx.wait();
-
-    tx = await voter.setGovernor(CONFIG.teamEOA);
-    tx.wait();
-
-    tx = await voter.setEmergencyCouncil(CONFIG.teamEOA);
-    tx.wait();
-
-    tx = await distributor.setDepositor(minter.address);
-    tx.wait();
-
-    tx = await governor.setTeam(CONFIG.teamEOA)
-    tx.wait();
-
-
-    // Whitelist
-    const nativeToken = [token.address];
-    const tokenWhitelist = nativeToken.concat(CONFIG.tokenWhitelist);
-    tx = await voter.initialize(tokenWhitelist, minter.address);
-    tx.wait();
-
-    let total:bigint = BigInt(0);
-    for( let i in CONFIG.partnerAmts ){
-        total += BigInt(CONFIG.partnerAmts[i]);
+    try{
+        tx = await token.initialMint(CONFIG.teamTreasure, CONFIG.teamAmount);
+        tx.wait();
+    }catch(e){
+        console.log(e);
     }
-    tx = await minter.initialize(CONFIG.partnerAddrs, CONFIG.partnerAmts, total);
-    tx.wait();
 
-    tx = await minter.setTeam(CONFIG.teamMultisig)
-    tx.wait();
+    try{
+        tx = await token.setMerkleClaim(claim.address);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try{
+        tx = await token.setMinter(minter.address);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try{
+        tx = await pairFactory.setPauser(CONFIG.teamEOA);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try {
+        tx = await escrow.setVoter(voter.address);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try {
+        tx = await escrow.setTeam(CONFIG.teamEOA);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try {
+        tx = await voter.setGovernor(CONFIG.teamEOA);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try {
+        tx = await voter.setEmergencyCouncil(CONFIG.teamEOA);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try {
+        tx = await distributor.setDepositor(minter.address);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try {
+        tx = await governor.setTeam(CONFIG.teamEOA)
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+
+    try{
+        const nativeToken = [token.address];
+        const tokenWhitelist = nativeToken.concat(CONFIG.tokenWhitelist);
+        tx = await voter.initialize(tokenWhitelist, minter.address);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try{
+        let total:bigint = BigInt(0);
+        for( let i in CONFIG.partnerAmts ){
+            total += BigInt(CONFIG.partnerAmts[i]);
+        }
+        tx = await minter.initialize(CONFIG.partnerAddrs, CONFIG.partnerAmts, total);
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
+
+    try{
+        tx = await minter.setTeam(CONFIG.teamMultisig)
+        tx.wait();
+    }catch(e){
+        console.log(e);
+    }
 
 }
 

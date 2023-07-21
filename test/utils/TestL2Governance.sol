@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import "contracts/governance/L2Governor.sol";
-import "contracts/governance/L2GovernorVotes.sol";
-import "contracts/governance/L2GovernorCountingSimple.sol";
-import "contracts/governance/L2GovernorVotesQuorumFraction.sol";
+import "../../contracts/L2Governor.sol";
+import "../../contracts/L2GovernorVotes.sol";
+import "../../contracts/L2GovernorCountingSimple.sol";
+import "../../contracts/L2GovernorVotesQuorumFraction.sol";
 
 contract TestL2Governance is
     L2Governor,

@@ -4,10 +4,10 @@ pragma solidity 0.8.13;
 import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
-import {L2Governor} from "contracts/governance/L2Governor.sol";
-import {L2GovernorCountingSimple} from "contracts/governance/L2GovernorCountingSimple.sol";
-import {L2GovernorVotes} from "contracts/governance/L2GovernorVotes.sol";
-import {L2GovernorVotesQuorumFraction} from "contracts/governance/L2GovernorVotesQuorumFraction.sol";
+import {L2Governor} from "./L2Governor.sol";
+import {L2GovernorCountingSimple} from "./L2GovernorCountingSimple.sol";
+import {L2GovernorVotes} from "./L2GovernorVotes.sol";
+import {L2GovernorVotesQuorumFraction} from "./L2GovernorVotesQuorumFraction.sol";
 
 contract TokenGovernor is
     L2Governor,
