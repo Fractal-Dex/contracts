@@ -1,4 +1,6 @@
 {
+    "multicall": "0xC355e18e1821d15Fb47cf7c0aa6584878fF55f1C",
+    "dai": "0x5eBD3B4dB6F999533f6dfE4930C0A465dC8cF73a",
     "usdc": "0x6182A5E3165E3DCF7F645136a3C7369DE2e7C5ee",
     "usdt": "0xe25D65332c94bb48ee3367a935c5d5f53b2404A3",
     "wbtc": "0x370267c55066D88bFE7C136Ed3136A88a4b7225d",
@@ -27,5 +29,6 @@
     "Voter.setGovernor": "0xe74709d6d6cee85d82a6487f14c82f349f701ee16e1895e0b5a50d9fe9b9a243",
     "Voter.setEmergencyCouncil": "0x9472054ecf7506bf85653962bcd4377b766ced96d1138a89a4bc4d8ac6ddd694",
     "TokenGovernor.setTeam": "0x37304b9725b6161bcbd4de422f0108770e228c20aa60b01d78d240ab8aeb8fc5",
-    "Minter.setTeam": "0xe27737912bfcd524cd307150a368067bfd9b9ef47fa7e9abcec3c38793a739da"
+    "Minter.setTeam": "0xe27737912bfcd524cd307150a368067bfd9b9ef47fa7e9abcec3c38793a739da",
+    "Multicall": "0xC355e18e1821d15Fb47cf7c0aa6584878fF55f1C"
 }

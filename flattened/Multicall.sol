@@ -1,8 +1,14 @@
+// SPDX-License-Identifier: MIXED
+
+// Sources flattened with hardhat v2.17.0 https://hardhat.org
+
+// File contracts/Multicall.sol
+
 // Sources flattened with hardhat v2.8.4 https://hardhat.org
 
 // File contracts/Multicall.sol
 
-// SPDX-License-Identifier: MIT
+// License-Identifier: MIT
 // Derived from https://github.com/makerdao/multicall/blob/master/src/Multicall.sol
 
 pragma solidity ^0.8.0;
