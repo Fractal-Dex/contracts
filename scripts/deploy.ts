@@ -57,16 +57,18 @@ async function verify(contract: any, args: any[] = []) {
 }
 
 async function flatten(name:string, files:string[]) {
-    let flattened = await hre.run("flatten:get-flattened-sources", { files });
-
-    // Remove every line started with "// SPDX-License-Identifier:"
-    flattened = flattened.replace(/SPDX-License-Identifier:/gm, "License-Identifier:");
-    flattened = `// SPDX-License-Identifier: MIXED\n\n${flattened}`;
-
-    // Remove every line started with "pragma experimental ABIEncoderV2;" except the first one
-    flattened = flattened.replace(/pragma experimental ABIEncoderV2;\n/gm, ((i) => (m) => (!i++ ? m : ""))(0));
+    let flattened = '';
+    try {
+        flattened = await hre.run("flatten:get-flattened-sources", {files});
+        flattened = flattened.replaceAll(/SPDX-License-Identifier:/gm, "License-Identifier:");
+        flattened = `// SPDX-License-Identifier: MIXED\n\n${flattened}`;
+        flattened = flattened.replace(/pragma experimental ABIEncoderV2;\n/gm, ((i) => (m) => (!i++ ? m : ""))(0));
+    } catch (e) {
+        console.log(` - Flattening failed for ${name}`);
+        console.log(e);
+        return;
+    }
     fs.writeFileSync(`flattened/${name}.sol`, flattened);
-
 }
 
 let README = "";
@@ -87,8 +89,24 @@ async function deployOrLoad(name: string, factory: any, args: any[] = []) {
     const sourceName = buildInfo.sourceName;
     const contractName = buildInfo.contractName;
     await flatten(contractName, [sourceName]);
-    README += `- [${abiFile}](${name}): [${CONFIG.EXPLORER}address/${addr}](\`${addr}\`)\n`;
+    README += `- [${sourceName}](${sourceName}) [\`${addr}\`](${CONFIG.EXPLORER}address/${addr}) ([abi](${abiFile}))\n`;
+    const argumentsFile = `arguments/${name}.txt`;
+    // encode arguments in abi format:
+    const encoded = constructorArgs(abi, args);
+    fs.writeFileSync(argumentsFile, encoded.replace(/0x/, ""));
     return await hre.ethers.getContractAt(name, addr);
+}
+
+function constructorArgs(abi: any, args: any[] = []): string {
+    let types = [];
+    for (const entry of abi) {
+        if (entry.type !== "constructor")
+            continue;
+        for (const input of entry.inputs) {
+            types.push(input.type);
+        }
+    }
+    return types.length ? ethers.utils.defaultAbiCoder.encode(types, args) : "";
 }
 
 async function main() {
@@ -143,10 +161,6 @@ async function main() {
         hre.ethers.getContractFactory("WrappedExternalBribeFactory"),
     ]);
     const token = await deployOrLoad("Token", Token);
-    console.log(README);
-    fs.writeFileSync("readme.md", README);
-
-    return;
     const pairFactory = await deployOrLoad("PairFactory", PairFactory);
     const router = await deployOrLoad("Router", Router, [pairFactory.address, CONFIG.WETH]);
     const router2 = await deployOrLoad("Router2", Router2, [pairFactory.address, CONFIG.WETH]);
@@ -162,104 +176,40 @@ async function main() {
     const governor = await deployOrLoad("TokenGovernor", TokenGovernor, [escrow.address]);
     const claim = await deployOrLoad("MerkleClaim", MerkleClaim, [token.address, CONFIG.merkleRoot]);
 
+    README += `# Transactions:\n\n`;
+    await runTx("token.initialMint", token.initialMint(CONFIG.teamTreasure, CONFIG.teamAmount))
+    await runTx("token.setMerkleClaim", token.setMerkleClaim(claim.address))
+    await runTx("token.setMinter", token.setMinter(minter.address))
+    await runTx("pairFactory.setPauser", pairFactory.setPauser(CONFIG.teamEOA))
+    await runTx("escrow.setVoter", escrow.setVoter(voter.address))
+    await runTx("escrow.setTeam", escrow.setTeam(CONFIG.teamEOA))
+    await runTx("voter.setGovernor", voter.setGovernor(CONFIG.teamEOA))
+    await runTx("voter.setEmergencyCouncil", voter.setEmergencyCouncil(CONFIG.teamEOA))
+    await runTx("distributor.setDepositor", distributor.setDepositor(minter.address))
+    await runTx("governor.setTeam", governor.setTeam(CONFIG.teamEOA))
+    const nativeToken = [token.address]
+    const tokenWhitelist = nativeToken.concat(CONFIG.tokenWhitelist)
+    await runTx("voter.initialize", voter.initialize(tokenWhitelist, minter.address))
+
+    let total:bigint = BigInt(0)
+    for( let i in CONFIG.partnerAmts )
+        total += BigInt(CONFIG.partnerAmts[i])
+    await runTx("minter.initialize", minter.initialize(CONFIG.partnerAddrs, CONFIG.partnerAmts, total))
+    await runTx("minter.setTeam", minter.setTeam(CONFIG.teamMultisig))
+
+    fs.writeFileSync("readme.md", README);
+
+}
+
+async function runTx(name, transaction:Promise<any>){
     try{
-        tx = await token.initialMint(CONFIG.teamTreasure, CONFIG.teamAmount);
+        const tx = await transaction;
         tx.wait();
-    }catch(e){
+        const alias = tx.hash.substring(0, 6);
+        README += ` - ${name}: [\`${alias}\`](${CONFIG.EXPLORER}tx/${tx.hash})\n`;
+    }catch(e) {
         console.log(e);
     }
-
-    try{
-        tx = await token.setMerkleClaim(claim.address);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try{
-        tx = await token.setMinter(minter.address);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try{
-        tx = await pairFactory.setPauser(CONFIG.teamEOA);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try {
-        tx = await escrow.setVoter(voter.address);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try {
-        tx = await escrow.setTeam(CONFIG.teamEOA);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try {
-        tx = await voter.setGovernor(CONFIG.teamEOA);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try {
-        tx = await voter.setEmergencyCouncil(CONFIG.teamEOA);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try {
-        tx = await distributor.setDepositor(minter.address);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try {
-        tx = await governor.setTeam(CONFIG.teamEOA)
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-
-    try{
-        const nativeToken = [token.address];
-        const tokenWhitelist = nativeToken.concat(CONFIG.tokenWhitelist);
-        tx = await voter.initialize(tokenWhitelist, minter.address);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try{
-        let total:bigint = BigInt(0);
-        for( let i in CONFIG.partnerAmts ){
-            total += BigInt(CONFIG.partnerAmts[i]);
-        }
-        tx = await minter.initialize(CONFIG.partnerAddrs, CONFIG.partnerAmts, total);
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
-    try{
-        tx = await minter.setTeam(CONFIG.teamMultisig)
-        tx.wait();
-    }catch(e){
-        console.log(e);
-    }
-
 }
 
 main()

@@ -1,12 +1,164 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIXED
+
+// Sources flattened with hardhat v2.17.0 https://hardhat.org
+
+// File contracts/interfaces/IERC20.sol
+
+// License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import 'contracts/libraries/Math.sol';
-import 'contracts/interfaces/IERC20.sol';
-import 'contracts/interfaces/IPair.sol';
-import 'contracts/interfaces/IPairCallee.sol';
-import "contracts/interfaces/IPairFactory.sol";
-import 'contracts/PairFees.sol';
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function transfer(address recipient, uint amount) external returns (bool);
+    function decimals() external view returns (uint8);
+    function symbol() external view returns (string memory);
+    function balanceOf(address) external view returns (uint);
+    function transferFrom(address sender, address recipient, uint amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint);
+    function approve(address spender, uint value) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(address indexed owner, address indexed spender, uint value);
+}
+
+
+// File contracts/interfaces/IPair.sol
+
+// License-Identifier: MIT
+pragma solidity 0.8.13;
+
+interface IPair {
+    function metadata() external view returns (uint dec0, uint dec1, uint r0, uint r1, bool st, address t0, address t1);
+    function claimFees() external returns (uint, uint);
+    function tokens() external returns (address, address);
+    function transferFrom(address src, address dst, uint amount) external returns (bool);
+    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
+    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
+    function burn(address to) external returns (uint amount0, uint amount1);
+    function mint(address to) external returns (uint liquidity);
+    function getReserves() external view returns (uint _reserve0, uint _reserve1, uint _blockTimestampLast);
+    function getAmountOut(uint, address) external view returns (uint);
+}
+
+
+// File contracts/interfaces/IPairCallee.sol
+
+// License-Identifier: MIT
+pragma solidity 0.8.13;
+
+interface IPairCallee {
+    function hook(address sender, uint amount0, uint amount1, bytes calldata data) external;
+}
+
+
+// File contracts/interfaces/IPairFactory.sol
+
+// License-Identifier: MIT
+pragma solidity 0.8.13;
+
+interface IPairFactory {
+    function allPairsLength() external view returns (uint);
+    function isPair(address pair) external view returns (bool);
+    function pairCodeHash() external pure returns (bytes32);
+    function getPair(address tokenA, address token, bool stable) external view returns (address);
+    function createPair(address tokenA, address tokenB, bool stable) external returns (address pair);
+    function getInitializable() external view returns (address, address, bool);
+    function isPaused() external view returns (bool);
+    function getFee(bool _stable) external view returns(uint256);
+}
+
+
+// File contracts/libraries/Math.sol
+
+// License-Identifier: MIT
+pragma solidity 0.8.13;
+
+library Math {
+    function max(uint a, uint b) internal pure returns (uint) {
+        return a >= b ? a : b;
+    }
+
+    function min(uint a, uint b) internal pure returns (uint) {
+        return a < b ? a : b;
+    }
+
+    function sqrt(uint y) internal pure returns (uint z) {
+        if (y > 3) {
+            z = y;
+            uint x = y / 2 + 1;
+            while (x < z) {
+                z = x;
+                x = (y / x + x) / 2;
+            }
+        } else if (y != 0) {
+            z = 1;
+        }
+    }
+
+    function cbrt(uint256 n) internal pure returns (uint256) {
+        unchecked {
+            uint256 x = 0;
+            for (uint256 y = 1 << 255; y > 0; y >>= 3) {
+                x <<= 1;
+                uint256 z = 3 * x * (x + 1) + 1;
+                if (n / y >= z) {
+                    n -= y * z;
+                    x += 1;
+                }
+            }
+            return x;
+        }
+    }
+    function sub(uint x, uint y) internal pure returns (uint z) {
+        require((z = x - y) <= x, 'Math: Sub-underflow');
+    }
+}
+
+
+// File contracts/PairFees.sol
+
+// License-Identifier: MIT
+pragma solidity 0.8.13;
+
+// Pair Fees contract is used as a 1:1 pair relationship to split out fees, this ensures that the curve does not need to be modified for LP shares
+contract PairFees {
+
+    address internal immutable pair; // The pair it is bonded to
+    address internal immutable token0; // token0 of pair, saved localy and statically for gas optimization
+    address internal immutable token1; // Token1 of pair, saved localy and statically for gas optimization
+
+    constructor(address _token0, address _token1) {
+        pair = msg.sender;
+        token0 = _token0;
+        token1 = _token1;
+    }
+
+    function _safeTransfer(address token,address to,uint256 value) internal {
+        require(token.code.length > 0);
+        (bool success, bytes memory data) =
+        token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))));
+    }
+
+    // Allow the pair to transfer fees to users
+    function claimFeesFor(address recipient, uint amount0, uint amount1) external {
+        require(msg.sender == pair);
+        if (amount0 > 0) _safeTransfer(token0, recipient, amount0);
+        if (amount1 > 0) _safeTransfer(token1, recipient, amount1);
+    }
+
+}
+
+
+// File contracts/Pair.sol
+
+// License-Identifier: MIT
+pragma solidity 0.8.13;
+
+
+
+
+
 
 // The base pair of pools, either stable or volatile
 contract Pair is IPair {
@@ -527,5 +679,110 @@ contract Pair is IPair {
         (bool success, bytes memory data) =
         token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
+    }
+}
+
+
+// File contracts/PairFactory.sol
+
+// License-Identifier: MIT
+pragma solidity 0.8.13;
+
+
+contract PairFactory is IPairFactory {
+
+    bool public isPaused;
+    address public pauser;
+    address public pendingPauser;
+
+    uint256 public stableFee;
+    uint256 public volatileFee;
+    uint256 public constant MAX_FEE = 50; // 0.5%
+    address public feeManager;
+    address public pendingFeeManager;
+
+    mapping(address => mapping(address => mapping(bool => address))) public getPair;
+    address[] public allPairs;
+    mapping(address => bool) public isPair; // simplified check if its a pair, given that `stable` flag might not be available in peripherals
+
+    address internal _temp0;
+    address internal _temp1;
+    bool internal _temp;
+
+    event PairCreated(address indexed token0, address indexed token1, bool stable, address pair, uint);
+
+    constructor() {
+        pauser = msg.sender;
+        isPaused = false;
+        feeManager = msg.sender;
+        stableFee = 4; // 0.04%
+        volatileFee = 30;
+    }
+
+    function allPairsLength() external view returns (uint) {
+        return allPairs.length;
+    }
+
+    function setPauser(address _pauser) external {
+        require(msg.sender == pauser);
+        pendingPauser = _pauser;
+    }
+
+    function acceptPauser() external {
+        require(msg.sender == pendingPauser);
+        pauser = pendingPauser;
+    }
+
+    function setPause(bool _state) external {
+        require(msg.sender == pauser);
+        isPaused = _state;
+    }
+
+    function setFeeManager(address _feeManager) external {
+        require(msg.sender == feeManager, 'not fee manager');
+        pendingFeeManager = _feeManager;
+    }
+
+    function acceptFeeManager() external {
+        require(msg.sender == pendingFeeManager, 'not pending fee manager');
+        feeManager = pendingFeeManager;
+    }
+
+    function setFee(bool _stable, uint256 _fee) external {
+        require(msg.sender == feeManager, 'not fee manager');
+        require(_fee <= MAX_FEE, 'fee too high');
+        require(_fee != 0, 'fee must be nonzero');
+        if (_stable) {
+            stableFee = _fee;
+        } else {
+            volatileFee = _fee;
+        }
+    }
+
+    function getFee(bool _stable) public view returns(uint256) {
+        return _stable ? stableFee : volatileFee;
+    }
+
+    function pairCodeHash() external pure returns (bytes32) {
+        return keccak256(type(Pair).creationCode);
+    }
+
+    function getInitializable() external view returns (address, address, bool) {
+        return (_temp0, _temp1, _temp);
+    }
+
+    function createPair(address tokenA, address tokenB, bool stable) external returns (address pair) {
+        require(tokenA != tokenB, 'IA'); // Pair: IDENTICAL_ADDRESSES
+        (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        require(token0 != address(0), 'ZA'); // Pair: ZERO_ADDRESS
+        require(getPair[token0][token1][stable] == address(0), 'PE'); // Pair: PAIR_EXISTS - single check is sufficient
+        bytes32 salt = keccak256(abi.encodePacked(token0, token1, stable)); // notice salt includes stable as well, 3 parameters
+        (_temp0, _temp1, _temp) = (token0, token1, stable);
+        pair = address(new Pair{salt:salt}());
+        getPair[token0][token1][stable] = pair;
+        getPair[token1][token0][stable] = pair; // populate mapping in the reverse direction
+        allPairs.push(pair);
+        isPair[pair] = true;
+        emit PairCreated(token0, token1, stable, pair, allPairs.length);
     }
 }
