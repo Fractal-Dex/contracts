@@ -9,7 +9,7 @@ import {L2GovernorCountingSimple} from "./L2GovernorCountingSimple.sol";
 import {L2GovernorVotes} from "./L2GovernorVotes.sol";
 import {L2GovernorVotesQuorumFraction} from "./L2GovernorVotesQuorumFraction.sol";
 
-contract TokenGovernor is
+abstract contract TokenGovernor is
     L2Governor,
     L2GovernorCountingSimple,
     L2GovernorVotes,

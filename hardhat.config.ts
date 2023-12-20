@@ -30,7 +30,7 @@ const config: HardhatUserConfig = {
         testnet: {
             url: process.env.RPC_TESTNET,
             accounts: [process.env.PRIVATE_KEY!],
-            gasPrice: 2_500_000_000,
+            gasPrice: 10000000000,
         },
 
     },
