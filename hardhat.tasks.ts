@@ -1,5 +1,9 @@
 import {task} from "hardhat/config";
 import fs from "fs";
+import path from "path";
+
+const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
+
 
 async function loadCfg() {
     const network = await hre.ethers.provider.getNetwork();
@@ -314,3 +318,117 @@ task("gen-privkey", "gen-privkey").setAction(async () => {
     const wallet = ethers.Wallet.createRandom();
     console.log(wallet.privateKey);
 });
+
+// task to create a pair:
+task("create-pair", "Creates a new pair with the given arguments")
+    .addParam("token0", "The address of the first token")
+    .addParam("token1", "The address of the second token")
+    .addParam("stable", "Stable coin")
+    .setAction(async (taskArgs, { ethers }) => {
+        const { token0, token1, stable } = taskArgs;
+
+        if (token0 === undefined) {
+            throw new Error("token0 is undefined");
+        }
+        if (token1 === undefined) {
+            throw new Error("token1 is undefined");
+        }
+
+        const network = await ethers.provider.getNetwork();
+        console.log(`network: ${network.name} (${network.chainId})`);
+        // hardhat is a fork of mainnet:
+        let networkId = network.chainId;
+        // read all contracts addresses from file:
+        const contractsFile = path.resolve(
+            `${__dirname}/contracts-${networkId}.json`
+        );
+
+        if (!fs.existsSync(contractsFile)) {
+            throw new Error(`File ${contractsFile} does not exist`);
+        }
+        const addresses = require(contractsFile);
+        const factoryAddress = addresses["PairFactory"];
+        if (!factoryAddress) {
+            throw new Error(
+                `No factory address found for network ${networkId}`
+            );
+        } else {
+            console.log(`factoryAddress: ${factoryAddress}`);
+        }
+
+        // Get the signer account
+        const [signer] = await ethers.getSigners();
+
+        // Get the pool factory contract
+        const PairFactory = await ethers.getContractFactory(
+            "PairFactory",
+            signer
+        );
+
+        const factory = await PairFactory.attach(factoryAddress);
+
+        const ERC20 = await ethers.getContractFactory("ERC20", signer);
+
+        // check if we have code for the tokens:
+        const code0 = await ethers.provider.getCode(token0);
+
+        const code1 = await ethers.provider.getCode(token1);
+        if (code0 === "0x") {
+            throw new Error(`No code found for token0 ${token0}`);
+        }
+        if (code1 === "0x") {
+            throw new Error(`No code found for token0 ${token1}`);
+        }
+
+        const Token0 = await ERC20.attach(token0);
+        const Token1 = await ERC20.attach(token1);
+
+        const symbol0 = await Token0.symbol();
+        const symbol1 = await Token1.symbol();
+
+        console.log(
+            `Creating a pair for: [${symbol0}]/[${symbol1}] with stable: ${stable}%`
+        );
+
+        const allPairs = await factory.allPairsLength();
+        console.log(`allPairsLength: ${allPairs}`);
+
+        // loop over all pairs and check if the pair already exists:
+        let found = false;
+        for (let i = 0; i < allPairs; i++) {
+            const pairAddress = await factory.allPairs(i);
+            const pair = await ethers.getContractAt("Pair", pairAddress);
+            const token0Address = await pair.token0();
+            const token1Address = await pair.token1();
+            if (
+                token0Address === token0 &&
+                token1Address === token1 &&
+                stable === (await pair.stable())
+            ) {
+                console.log(`Pair already exists: ${pairAddress}`);
+                found = true;
+                break;
+            }
+        }
+
+        // check if the pool already exists:
+        if (found) {
+            console.log(`Pool already exists: ${token0}/${token1}`);
+        } else {
+            const tx: any = await factory.createPair(token0, token1, stable);
+            console.log(`createPair: ${tx.hash}`);
+            const events = await factory.queryFilter(
+                factory.filters.PairCreated(),
+                tx.blockHash
+            );
+            if (events.length === 0) {
+                throw new Error(`No PairCreated event found in tx ${tx.hash}`);
+            }
+            
+            const pairAddress = events[0]?.args?.pair;
+            if (!pairAddress) {
+                throw new Error(`Pair address is null or undefined`);
+            }
+            console.log(`Pair created: ${pairAddress}`);
+        }
+    });
